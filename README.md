@@ -2,7 +2,7 @@
 
 Integrantes:
 
-- [Catalina Marchessi]
-- [Julián de León]
-- [Ignacio Laporte]
-- [Exequiel Pinto]
+- Catalina Marchesi
+- Julián de León
+- Ignacio Laporte
+- Exequiel Pinto
