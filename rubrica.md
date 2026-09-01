@@ -1,9 +1,8 @@
-## RÚBRICA EJECUTABLE v0
+# Rúbrica ejecutable v0
 
-Evalúa exclusivamente la evidencia verificable provista del repositorio.
-No supongas que algo existe. No otorgues puntos por intención, promesas ni afirmaciones sin respaldo concreto.
+Evalúa exclusivamente evidencia verificable del repositorio. No otorgues puntos por intención, promesas ni afirmaciones sin respaldo concreto.
 
-### Escala obligatoria
+## Escala obligatoria
 
 Para cada dimensión asigna únicamente uno de estos niveles:
 
@@ -15,7 +14,7 @@ Para cada dimensión asigna únicamente uno de estos niveles:
 
 No uses porcentajes ni puntajes intermedios.
 
-### Dimensiones
+## Dimensiones
 
 | Dimensión | Peso |
 |---|---:|
@@ -25,48 +24,18 @@ No uses porcentajes ni puntajes intermedios.
 | Análisis económico: costo por corrida, proyección, elección de modelo justificada | 15 |
 | Gobierno y riesgo: permisos, fallas posibles, supervisión, quién firma | 15 |
 
-### Regla de evidencia
+## Regla de evidencia
 
-Una afirmación solo cuenta como evidencia si referencia al menos uno de estos elementos:
+Una afirmación cuenta como evidencia solo si incluye una ruta de archivo, commit, corrida con entrada y salida, cálculo reproducible, decisión documentada o resultado de prueba verificable.
 
-- archivo o ruta concreta;
-- commit o historial de cambios;
-- corrida registrada con entrada y salida;
-- cálculo reproducible;
-- decisión documentada;
-- resultado de prueba verificable.
+El proceso documentado con honestidad vale: una falla, iteración descartada o decisión corregida suma evidencia en “Proceso documentado”.
 
-El proceso documentado con honestidad vale: registrar una falla, una iteración descartada o una decisión corregida suma evidencia en la dimensión “Proceso documentado”.
+El chamuyo sin evidencia no vale. Frases como “el agente funciona”, “se realizaron pruebas” o “el modelo es económico” no suman sin artefactos verificables.
 
-El chamuyo sin evidencia no vale: frases generales como “el agente funciona”, “se realizaron pruebas” o “el modelo es económico” no suman puntos sin respaldo verificable.
+Si la evidencia es ambigua, incompleta o contradictoria, asigna el nivel inferior justificable e indica qué falta.
 
-Si la evidencia es ambigua, incompleta o contradictoria, asigna el nivel inferior que pueda justificarse e indica qué falta.
+## Cálculo
 
-### Salida obligatoria
+puntos de dimensión = peso × nivel asignado / 100
 
-Responde únicamente con JSON válido:
-
-{
-  "puntaje_total": 0,
-  "maximo": 100,
-  "veredicto": "aprobado | requiere_revision | evidencia_insuficiente",
-  "dimensiones": [
-    {
-      "nombre": "",
-      "peso": 0,
-      "nivel_porcentaje": 0,
-      "puntos": 0,
-      "evidencia_encontrada": [],
-      "evidencia_faltante": [],
-      "justificacion": ""
-    }
-  ],
-  "fortalezas": [],
-  "riesgos_o_hallazgos": [],
-  "siguiente_mejora_prioritaria": ""
-}
-
-Calcula:
-puntos = peso × nivel_porcentaje / 100
-
-La suma de puntos de las cinco dimensiones debe coincidir con puntaje_total.
+La suma de las cinco dimensiones determina la nota final sobre 100.puntaje_total.
