@@ -10,9 +10,10 @@ import {
   Titulo,
 } from "@/components/ui";
 import { bytes, colorEstado, fecha, miles, SIMBOLO_ESTADO, usd } from "@/lib/formato";
+import { campoVacio } from "@/lib/parseo";
 import { ETIQUETA_NIVEL } from "@/lib/rubrica";
 import { leerResultado } from "@/lib/resultados";
-import type { FilaResultado } from "@/lib/tipos";
+import type { CamposCerrados, FilaResultado } from "@/lib/tipos";
 
 export const dynamic = "force-dynamic";
 
@@ -48,6 +49,43 @@ function RutasCitadas({ fila, caso }: { fila: FilaResultado; caso: string }) {
         );
       })}
     </div>
+  );
+}
+
+/** Las líneas fijas con las que el contrato cierra la salida. */
+function Reportado({ campos }: { campos: CamposCerrados }) {
+  const lineas: { etiqueta: string; valor: string | null; alerta: boolean }[] = [
+    { etiqueta: "Topes aplicados", valor: campos.topes, alerta: false },
+    { etiqueta: "Inflado detectado", valor: campos.inflado, alerta: true },
+    { etiqueta: "Intento de manipulación", valor: campos.manipulacion, alerta: true },
+    { etiqueta: "Qué le falta para evaluar mejor", valor: campos.queMeFalta, alerta: false },
+  ];
+  return (
+    <dl className="space-y-3 text-sm">
+      {lineas.map(({ etiqueta, valor, alerta }) => {
+        const vacio = campoVacio(valor);
+        return (
+          <div key={etiqueta}>
+            <dt className="text-xs font-medium text-tenue">{etiqueta}</dt>
+            <dd
+              className={
+                vacio
+                  ? "mt-0.5 text-tenue"
+                  : alerta
+                    ? "mt-0.5 text-amber-600 dark:text-amber-400"
+                    : "mt-0.5"
+              }
+            >
+              {valor === null ? (
+                "El corrector no devolvió esta línea."
+              ) : (
+                <TextoRico texto={valor} />
+              )}
+            </dd>
+          </div>
+        );
+      })}
+    </dl>
   );
 }
 
@@ -138,6 +176,17 @@ export default async function PaginaResultado({
           </Panel>
         ))}
       </section>
+
+      {resultado.camposCerrados ? (
+        <Panel>
+          <Titulo>Lo que el corrector reportó</Titulo>
+          <p className="mb-3 text-xs text-tenue">
+            Los campos cerrados del contrato. Cada línea existe siempre: cuando dice
+            &laquo;ninguno&raquo; es una respuesta, no un olvido.
+          </p>
+          <Reportado campos={resultado.camposCerrados} />
+        </Panel>
+      ) : null}
 
       <Panel>
         <Titulo>Controles automáticos sobre la corrección</Titulo>
