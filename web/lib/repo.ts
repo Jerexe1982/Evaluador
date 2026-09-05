@@ -48,7 +48,11 @@ function recorrer(dir: string, prefijo = ""): ArchivoCaso[] {
       });
     }
   }
-  return archivos.sort((a, b) => a.ruta.localeCompare(b.ruta));
+  // Primero los archivos de la raíz del caso (README, DECISIONES), después las carpetas.
+  return archivos.sort((a, b) => {
+    const profundidad = a.ruta.split("/").length - b.ruta.split("/").length;
+    return profundidad !== 0 ? profundidad : a.ruta.localeCompare(b.ruta, "es");
+  });
 }
 
 export function listarCasos(): Caso[] {

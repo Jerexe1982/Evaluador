@@ -79,3 +79,20 @@ export function Monoespaciado({ texto }: { texto: string }) {
     </pre>
   );
 }
+
+/** Texto del corrector con `rutas entre backticks` resaltadas como código. */
+export function TextoRico({ texto }: { texto: string }) {
+  return (
+    <>
+      {texto.split("`").map((parte, i) =>
+        i % 2 === 1 ? (
+          <code key={i} className="font-mono text-[0.9em]">
+            {parte}
+          </code>
+        ) : (
+          <span key={i}>{parte}</span>
+        ),
+      )}
+    </>
+  );
+}

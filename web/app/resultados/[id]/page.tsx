@@ -1,6 +1,14 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { Barra, Monoespaciado, Nota, Panel, Plegable, Titulo } from "@/components/ui";
+import {
+  Barra,
+  Monoespaciado,
+  Nota,
+  Panel,
+  Plegable,
+  TextoRico,
+  Titulo,
+} from "@/components/ui";
 import { bytes, colorEstado, fecha, miles, SIMBOLO_ESTADO, usd } from "@/lib/formato";
 import { ETIQUETA_NIVEL } from "@/lib/rubrica";
 import { leerResultado } from "@/lib/resultados";
@@ -108,11 +116,15 @@ export default async function PaginaResultado({
             <dl className="space-y-2 text-sm">
               <div>
                 <dt className="text-xs font-medium text-tenue">Evidencia citada</dt>
-                <dd className="mt-1">{fila.evidencia || "—"}</dd>
+                <dd className="mt-1">
+                  {fila.evidencia ? <TextoRico texto={fila.evidencia} /> : "—"}
+                </dd>
               </div>
               <div>
                 <dt className="text-xs font-medium text-tenue">Justificación</dt>
-                <dd className="mt-1">{fila.justificacion || "—"}</dd>
+                <dd className="mt-1">
+                  {fila.justificacion ? <TextoRico texto={fila.justificacion} /> : "—"}
+                </dd>
               </div>
               <div>
                 <dt className="mb-1 text-xs font-medium text-tenue">
@@ -151,7 +163,9 @@ export default async function PaginaResultado({
       {resultado.sugerencia ? (
         <Panel>
           <Titulo>La única sugerencia concreta</Titulo>
-          <p className="text-sm">{resultado.sugerencia}</p>
+          <p className="text-sm">
+            <TextoRico texto={resultado.sugerencia} />
+          </p>
         </Panel>
       ) : null}
 
