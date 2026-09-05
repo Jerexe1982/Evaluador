@@ -10,8 +10,9 @@ export function fecha(iso: string): string {
   });
 }
 
-export function usd(monto: number): string {
-  return `USD ${monto.toFixed(4)}`;
+/** Compacto para los listados: "24,1k tokens". */
+export function tokens(n: number): string {
+  return n >= 1000 ? `${(n / 1000).toFixed(1).replace(".", ",")}k tokens` : `${n} tokens`;
 }
 
 export function miles(n: number): string {

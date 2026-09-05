@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { evaluarCaso, hayCredenciales } from "@/lib/evaluador";
+import { evaluarCaso, haySesionChatGPT } from "@/lib/evaluador";
 import { buscarModelo, MODELO_POR_DEFECTO } from "@/lib/modelos";
 import { existeCaso } from "@/lib/repo";
 import { guardarResultado } from "@/lib/resultados";
@@ -8,11 +8,11 @@ export const runtime = "nodejs";
 export const maxDuration = 300;
 
 export async function POST(request: Request) {
-  if (!hayCredenciales()) {
+  if (!haySesionChatGPT()) {
     return NextResponse.json(
       {
         error:
-          "Falta ANTHROPIC_API_KEY. Copiá web/.env.example a web/.env.local y cargá la clave.",
+          "No hay sesión de ChatGPT. Corré `codex login` y elegí «Sign in with ChatGPT».",
       },
       { status: 400 },
     );

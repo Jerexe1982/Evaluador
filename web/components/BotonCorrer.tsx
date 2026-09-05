@@ -70,15 +70,15 @@ export function BotonCorrer({
           {corriendo ? "Corrigiendo…" : "Correr el evaluador"}
         </button>
         <span className="text-xs text-tenue">
-          USD {elegido.entradaPorMillon}/M entrada · USD {elegido.salidaPorMillon}/M salida
+          Lo paga tu suscripción de ChatGPT, no una clave de API.
         </span>
       </div>
       <p className="text-xs text-tenue">{elegido.nota}</p>
       {!habilitado ? (
         <p className="text-xs text-amber-600 dark:text-amber-400">
-          Falta la clave de la API: copiá <code className="font-mono">web/.env.example</code>{" "}
-          a <code className="font-mono">web/.env.local</code> y cargá{" "}
-          <code className="font-mono">ANTHROPIC_API_KEY</code>.
+          No hay sesión de ChatGPT: corré <code className="font-mono">codex login</code> y
+          elegí «Sign in with ChatGPT». La app lee la sesión que deja Codex en{" "}
+          <code className="font-mono">~/.codex/auth.json</code>.
         </p>
       ) : null}
       {corriendo ? (

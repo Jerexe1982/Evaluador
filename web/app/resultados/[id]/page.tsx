@@ -9,7 +9,7 @@ import {
   TextoRico,
   Titulo,
 } from "@/components/ui";
-import { bytes, colorEstado, fecha, miles, SIMBOLO_ESTADO, usd } from "@/lib/formato";
+import { bytes, colorEstado, fecha, miles, SIMBOLO_ESTADO } from "@/lib/formato";
 import { campoVacio } from "@/lib/parseo";
 import { ETIQUETA_NIVEL } from "@/lib/rubrica";
 import { leerResultado } from "@/lib/resultados";
@@ -99,7 +99,7 @@ export default async function PaginaResultado({
   if (!resultado) notFound();
 
   const { uso } = resultado;
-  const costoCurso = uso.costoUSD * 40;
+  const tokensCorrida = uso.tokensEntrada + uso.tokensSalida;
 
   return (
     <div className="space-y-8">
@@ -219,40 +219,40 @@ export default async function PaginaResultado({
       ) : null}
 
       <Panel>
-        <Titulo>Qué costó esta corrida</Titulo>
+        <Titulo>Qué consumió esta corrida</Titulo>
         <table className="w-full text-sm">
           <tbody className="divide-y divide-borde">
             <tr>
               <td className="py-2 text-tenue">Tokens de entrada</td>
               <td className="py-2 text-right tabular-nums">{miles(uso.tokensEntrada)}</td>
-              <td className="py-2 text-right tabular-nums text-tenue">
-                × USD {uso.precioEntradaPorMillon}/M
-              </td>
-              <td className="py-2 text-right tabular-nums">
-                {usd((uso.tokensEntrada * uso.precioEntradaPorMillon) / 1_000_000)}
+              <td className="py-2 text-right text-xs text-tenue">
+                {uso.tokensCacheLectura > 0
+                  ? `${miles(uso.tokensCacheLectura)} leídos del caché`
+                  : "sin caché"}
               </td>
             </tr>
             <tr>
               <td className="py-2 text-tenue">Tokens de salida</td>
               <td className="py-2 text-right tabular-nums">{miles(uso.tokensSalida)}</td>
-              <td className="py-2 text-right tabular-nums text-tenue">
-                × USD {uso.precioSalidaPorMillon}/M
-              </td>
-              <td className="py-2 text-right tabular-nums">
-                {usd((uso.tokensSalida * uso.precioSalidaPorMillon) / 1_000_000)}
+              <td className="py-2 text-right text-xs text-tenue">
+                {uso.tokensRazonamiento > 0
+                  ? `${miles(uso.tokensRazonamiento)} de razonamiento`
+                  : "sin razonamiento facturado"}
               </td>
             </tr>
             <tr className="font-semibold">
-              <td className="py-2">Costo de la corrida</td>
+              <td className="py-2">Total de la corrida</td>
+              <td className="py-2 text-right tabular-nums">{miles(tokensCorrida)}</td>
               <td />
-              <td />
-              <td className="py-2 text-right tabular-nums">{usd(uso.costoUSD)}</td>
             </tr>
           </tbody>
         </table>
         <p className="mt-3 text-xs text-tenue">
-          Proyección: corregir 40 trabajos finales con este mismo modelo costaría{" "}
-          {usd(costoCurso)}.
+          La corrida no se factura por token: la cubre la suscripción de ChatGPT
+          {uso.plan ? ` (plan ${uso.plan})` : ""} a través de Codex. Corregir 40 trabajos
+          finales con este mismo modelo consumiría del orden de{" "}
+          {miles(tokensCorrida * 40)} tokens, sin costo marginal: el límite es el cupo
+          del plan, no el presupuesto.
         </p>
       </Panel>
 

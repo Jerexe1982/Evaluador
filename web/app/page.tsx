@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { Barra, Nota, Panel, Titulo } from "@/components/ui";
-import { fecha, usd } from "@/lib/formato";
+import { fecha, tokens } from "@/lib/formato";
 import { listarCasos } from "@/lib/repo";
 import { DIMENSIONES } from "@/lib/rubrica";
 import { listarResultados, ultimoResultadoCompleto } from "@/lib/resultados";
@@ -132,7 +132,7 @@ export default function Inicio() {
                 >
                   <span className="capitalize">{corrida.caso}</span>
                   <span className="text-xs text-tenue">
-                    {fecha(corrida.fecha)} · {corrida.modelo} · {usd(corrida.costoUSD)}
+                    {fecha(corrida.fecha)} · {corrida.modelo} · {tokens(corrida.tokensTotales)}
                     {corrida.alertas > 0 ? ` · ${corrida.alertas} alertas` : ""}
                   </span>
                   <span className="tabular-nums">{corrida.notaCalculada}/100</span>

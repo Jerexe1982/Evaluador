@@ -65,9 +65,10 @@ export type UsoModelo = {
   tokensEntrada: number;
   tokensSalida: number;
   tokensCacheLectura: number;
-  costoUSD: number;
-  precioEntradaPorMillon: number;
-  precioSalidaPorMillon: number;
+  /** Tokens de razonamiento, ya contados dentro de los de salida. */
+  tokensRazonamiento: number;
+  /** El plan de ChatGPT que cubrió la corrida: "plus", "pro", "team"… */
+  plan: string | null;
 };
 
 export type EntradaEnviada = {
@@ -103,6 +104,6 @@ export type ResumenResultado = {
   modelo: string;
   notaCalculada: number;
   notaDeclarada: number | null;
-  costoUSD: number;
+  tokensTotales: number;
   alertas: number;
 };

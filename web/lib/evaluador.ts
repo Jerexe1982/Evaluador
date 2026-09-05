@@ -1,7 +1,8 @@
-import Anthropic from "@anthropic-ai/sdk";
+import { correrCodex } from "./codex";
+import { obtenerCredenciales } from "./credenciales";
 import { armarUserPrompt } from "./prompt";
 import { leerSystemPromptAgente } from "./repo";
-import { buscarModelo, MODELO_POR_DEFECTO } from "./modelos";
+import { buscarModelo, ESFUERZO_RAZONAMIENTO, MODELO_POR_DEFECTO } from "./modelos";
 import {
   parsearCamposCerrados,
   parsearFilas,
@@ -13,9 +14,7 @@ import {
 import { nuevoId } from "./resultados";
 import type { Resultado } from "./tipos";
 
-export function hayCredenciales(): boolean {
-  return Boolean(process.env.ANTHROPIC_API_KEY || process.env.ANTHROPIC_AUTH_TOKEN);
-}
+export { haySesionChatGPT } from "./credenciales";
 
 /**
  * Corre el agente corrector sobre un caso y devuelve el resultado ya parseado,
@@ -25,55 +24,26 @@ export async function evaluarCaso(slug: string, modeloId: string): Promise<Resul
   const modelo = buscarModelo(modeloId) ?? buscarModelo(MODELO_POR_DEFECTO)!;
   const systemPrompt = leerSystemPromptAgente();
   const { userPrompt, archivos } = armarUserPrompt(slug);
+  const credenciales = await obtenerCredenciales();
 
-  const cliente = new Anthropic();
   const inicio = Date.now();
-
-  const respuesta = await cliente.beta.messages.create({
-    model: modelo.id,
-    max_tokens: 16000,
-    system: systemPrompt,
-    // El razonamiento resumido es parte de la explicabilidad que muestra la app.
-    thinking: { type: "adaptive", display: "summarized" },
-    // Si un clasificador de seguridad rechaza la corrida, el servidor la deriva
-    // a otro modelo en vez de devolver una evaluación vacía.
-    betas: ["server-side-fallback-2026-07-01"],
-    fallbacks: "default",
-    messages: [{ role: "user", content: userPrompt }],
+  const respuesta = await correrCodex({
+    modelo: modelo.id,
+    esfuerzo: ESFUERZO_RAZONAMIENTO,
+    systemPrompt,
+    userPrompt,
+    credenciales,
+    // El system prompt y el caso se repiten entre corridas: que las reuse el caché.
+    claveCache: `evaluador-${slug}`,
   });
-
   const duracionMs = Date.now() - inicio;
 
-  if (respuesta.stop_reason === "refusal") {
-    throw new Error(
-      `El modelo rechazó la corrida (${respuesta.stop_details?.type ?? "sin detalle"}).`,
-    );
-  }
-
-  const salidaCruda = respuesta.content
-    .filter((b) => b.type === "text")
-    .map((b) => b.text)
-    .join("\n")
-    .trim();
-
-  const razonamiento =
-    respuesta.content
-      .filter((b) => b.type === "thinking")
-      .map((b) => b.thinking)
-      .join("\n\n")
-      .trim() || null;
-
+  const salidaCruda = respuesta.texto;
   const filas = parsearFilas(salidaCruda, slug);
   const notaDeclarada = parsearNotaFinal(salidaCruda);
   const notaCalculada = sumarPuntajes(filas);
   const sugerencia = parsearSugerencia(salidaCruda);
   const camposCerrados = parsearCamposCerrados(salidaCruda);
-
-  const tokensEntrada = respuesta.usage.input_tokens;
-  const tokensSalida = respuesta.usage.output_tokens;
-  const costoUSD =
-    (tokensEntrada * modelo.entradaPorMillon + tokensSalida * modelo.salidaPorMillon) /
-    1_000_000;
 
   const fecha = new Date();
 
@@ -81,22 +51,21 @@ export async function evaluarCaso(slug: string, modeloId: string): Promise<Resul
     id: nuevoId(slug, fecha),
     caso: slug,
     fecha: fecha.toISOString(),
-    modelo: respuesta.model ?? modelo.id,
+    modelo: respuesta.modelo,
     duracionMs,
     filas,
     notaDeclarada,
     notaCalculada,
     sugerencia,
     camposCerrados,
-    razonamiento,
+    razonamiento: respuesta.razonamiento,
     salidaCruda,
     uso: {
-      tokensEntrada,
-      tokensSalida,
-      tokensCacheLectura: respuesta.usage.cache_read_input_tokens ?? 0,
-      costoUSD,
-      precioEntradaPorMillon: modelo.entradaPorMillon,
-      precioSalidaPorMillon: modelo.salidaPorMillon,
+      tokensEntrada: respuesta.uso.entrada,
+      tokensSalida: respuesta.uso.salida,
+      tokensCacheLectura: respuesta.uso.cacheLectura,
+      tokensRazonamiento: respuesta.uso.razonamiento,
+      plan: credenciales.plan,
     },
     entrada: { systemPrompt, userPrompt, archivos },
     verificaciones: verificar(

@@ -3,8 +3,8 @@ import { notFound } from "next/navigation";
 import { BotonCorrer } from "@/components/BotonCorrer";
 import { VisorArchivos, type ArchivoConTexto } from "@/components/VisorArchivos";
 import { Nota, Panel, Titulo } from "@/components/ui";
-import { hayCredenciales } from "@/lib/evaluador";
-import { bytes, fecha, usd } from "@/lib/formato";
+import { haySesionChatGPT } from "@/lib/evaluador";
+import { bytes, fecha, tokens } from "@/lib/formato";
 import { esArchivoDeTexto, existeCaso, leerArchivoCaso, leerCaso } from "@/lib/repo";
 import { listarResultados } from "@/lib/resultados";
 
@@ -45,7 +45,7 @@ export default async function PaginaCaso({
         <Titulo>Correr el evaluador sobre este caso</Titulo>
         <BotonCorrer
           caso={slug}
-          habilitado={hayCredenciales()}
+          habilitado={haySesionChatGPT()}
           cantidadArchivos={caso.archivos.length}
         />
       </Panel>
@@ -61,7 +61,7 @@ export default async function PaginaCaso({
                   className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1 py-2 hover:underline"
                 >
                   <span className="text-xs text-tenue">
-                    {fecha(corrida.fecha)} · {corrida.modelo} · {usd(corrida.costoUSD)}
+                    {fecha(corrida.fecha)} · {corrida.modelo} · {tokens(corrida.tokensTotales)}
                     {corrida.alertas > 0 ? ` · ${corrida.alertas} alertas` : ""}
                   </span>
                   <Nota valor={corrida.notaCalculada} tamano="chico" />

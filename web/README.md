@@ -8,12 +8,19 @@ que puso y entender de dónde sale cada punto.
 ```bash
 cd web
 npm install
-cp .env.example .env.local   # y cargar ANTHROPIC_API_KEY
+codex login          # una sola vez, eligiendo «Sign in with ChatGPT»
 npm run dev
 ```
 
-Queda en `http://localhost:3000`. Sin clave la app abre igual: se ven los casos, sus
-archivos y las corridas ya guardadas; el botón de correr queda deshabilitado.
+Queda en `http://localhost:3000`. Sin sesión de ChatGPT la app abre igual: se ven los
+casos, sus archivos y las corridas ya guardadas; el botón de correr queda deshabilitado.
+
+No hace falta ninguna clave de API. La app corre el corrector contra el backend de Codex
+—el que atiende a las suscripciones de ChatGPT Plus/Pro— usando la sesión que el CLI de
+Codex deja en `~/.codex/auth.json`. Lee ese archivo, renueva el access token contra
+`auth.openai.com` cuando venció y guarda el token rotado en el mismo lugar, para no dejar
+al propio CLI sin sesión. El flujo está tomado del proveedor «OpenAI (ChatGPT Plus/Pro)»
+del agente [pi](https://pi.dev/docs/latest/providers), que hace exactamente esto.
 
 ## Qué hace
 
@@ -23,12 +30,13 @@ archivos y las corridas ya guardadas; el botón de correr queda deshabilitado.
   y el botón para correrlo eligiendo modelo.
 - **Corrección** (`/resultados/<id>`) — la explicabilidad: puntaje y nivel de cada
   dimensión, la evidencia citada con las rutas verificadas contra el repositorio, los
-  controles automáticos sobre la salida, el costo de la corrida con la cuenta a la vista,
+  controles automáticos sobre la salida, el consumo de tokens de la corrida,
   el razonamiento resumido del modelo, la salida cruda y la entrada exacta que se mandó.
 
 ## Cómo corre la evaluación
 
-`POST /api/evaluar` arma una corrida con dos piezas:
+`POST /api/evaluar` manda un pedido a `chatgpt.com/backend-api/codex/responses` —la
+Responses API de OpenAI, pero autenticada con la suscripción— armado con dos piezas:
 
 - **system prompt**: `agente/system_prompt.md` del repo, sin tocar. Es el contrato del
   agente y lleva la rúbrica adentro.
@@ -57,7 +65,16 @@ corrección respetó su propio contrato:
 
 ## Elección de modelo
 
-El selector ofrece tres modelos con su tarifa publicada por millón de tokens: Opus 5
-(USD 5 / USD 25), Sonnet 5 (USD 2 / USD 10) y Haiku 4.5 (USD 1 / USD 5). Correr el mismo
-caso con dos modelos y comparar las dos correcciones es la forma de aplicar el criterio
-del curso: el más chico que hace bien la tarea.
+El selector ofrece los modelos que la suscripción habilita vía Codex, del más capaz al más
+chico: GPT-6-Astra, GPT-5.6-Sol, GPT-5.6-Terra, GPT-5.6-Luna, GPT-5.5 y GPT-5.4-Mini.
+Todos corren con el mismo esfuerzo de razonamiento, así que la comparación mide el modelo
+y no la configuración. Correr el mismo caso con varios modelos y comparar las correcciones
+es la forma de aplicar el criterio del curso: el más chico que hace bien la tarea.
+
+La lista es la de `lib/modelos.ts` y sale del catálogo que Codex expone para el plan. Si
+alguna vez OpenAI renombra o retira un modelo, la corrida falla con el error del backend y
+hay que actualizar esa lista.
+
+Como la suscripción no factura por token, la app ya no muestra el costo en dólares sino el
+consumo: tokens de entrada, de salida, de razonamiento y lo que se leyó del caché. El
+límite pasa a ser el cupo del plan, no el presupuesto.

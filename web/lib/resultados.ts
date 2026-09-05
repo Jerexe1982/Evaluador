@@ -45,7 +45,7 @@ export function listarResultados(caso?: string): ResumenResultado[] {
       modelo: r.modelo,
       notaCalculada: r.notaCalculada,
       notaDeclarada: r.notaDeclarada,
-      costoUSD: r.uso.costoUSD,
+      tokensTotales: r.uso.tokensEntrada + r.uso.tokensSalida,
       alertas: r.verificaciones.filter((v) => v.estado !== "ok").length,
     }));
 }

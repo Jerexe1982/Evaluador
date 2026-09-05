@@ -18,5 +18,10 @@ Devolvé únicamente el formato de salida definido, sin texto adicional.
    arrastraría el criterio de la anterior y el test-retest daría una consistencia falsa.
 2. Se pega el system prompt completo de `agente/system_prompt.md`, sin recortar.
 3. Se pega este user prompt con el caso apuntado.
-4. La salida se guarda tal como salió en `agente/corridas/caso-<excelente|flojo|tramposo>-ronda-<N>.md`,
-   con fecha y modelo usado en la primera línea. No se edita ni se corrige la salida.
+4. La salida se guarda tal como salió, sin editar ni corregir. Corriendo desde la app (`web/`),
+   eso pasa solo: cada corrida queda en `resultados/<caso>__<fecha>.json` con la entrada exacta,
+   el modelo, los tokens, el costo y las verificaciones. Si se corre a mano en un chat, la salida
+   va a `agente/corridas/caso-<excelente|flojo|tramposo>-ronda-<N>.md`, con fecha y modelo en la
+   primera línea.
+5. Las corridas se commitean. Son la evidencia de que el corrector funciona: sin ellas, ese 25 %
+   del parcial no tiene respaldo.
