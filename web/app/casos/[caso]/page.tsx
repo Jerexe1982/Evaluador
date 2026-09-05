@@ -12,10 +12,13 @@ export const dynamic = "force-dynamic";
 
 export default async function PaginaCaso({
   params,
+  searchParams,
 }: {
   params: Promise<{ caso: string }>;
+  searchParams: Promise<{ archivo?: string }>;
 }) {
   const { caso: slug } = await params;
+  const { archivo: archivoInicial } = await searchParams;
   if (!existeCaso(slug)) notFound();
 
   const caso = leerCaso(slug);
@@ -75,7 +78,7 @@ export default async function PaginaCaso({
           Esto es exactamente lo que se le manda al corrector: cada archivo de texto del
           caso, delimitado y marcado como dato.
         </p>
-        <VisorArchivos archivos={archivos} />
+        <VisorArchivos archivos={archivos} rutaInicial={archivoInicial} />
       </Panel>
     </div>
   );
