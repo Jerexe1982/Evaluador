@@ -53,3 +53,9 @@ export function listarResultados(caso?: string): ResumenResultado[] {
 export function ultimoResultado(caso: string): ResumenResultado | null {
   return listarResultados(caso)[0] ?? null;
 }
+
+/** El último resultado completo de un caso, para las vistas que necesitan las filas. */
+export function ultimoResultadoCompleto(caso: string): Resultado | null {
+  const resumen = ultimoResultado(caso);
+  return resumen ? leerResultado(resumen.id) : null;
+}
