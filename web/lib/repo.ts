@@ -109,6 +109,18 @@ export function leerSystemPromptAgente(): string {
   return fs.readFileSync(path.join(rutaRepo(), "agente", "system_prompt.md"), "utf8");
 }
 
+/**
+ * El user prompt fijo del corrector, tomado del bloque de código de
+ * agente/user_prompt.md. Es el mismo texto en todas las corridas: si cambia entre
+ * corridas, las salidas dejan de ser comparables.
+ */
+export function leerUserPromptAgente(): string | null {
+  const archivo = path.join(rutaRepo(), "agente", "user_prompt.md");
+  if (!fs.existsSync(archivo)) return null;
+  const bloque = fs.readFileSync(archivo, "utf8").match(/```\n([\s\S]*?)```/);
+  return bloque ? bloque[1].trim() : null;
+}
+
 /** La rúbrica extendida, para mostrarla junto a los resultados. */
 export function leerRubrica(): string {
   return fs.readFileSync(path.join(rutaRepo(), "rubrica.md"), "utf8");

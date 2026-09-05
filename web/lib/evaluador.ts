@@ -3,6 +3,7 @@ import { armarUserPrompt } from "./prompt";
 import { leerSystemPromptAgente } from "./repo";
 import { buscarModelo, MODELO_POR_DEFECTO } from "./modelos";
 import {
+  parsearCamposCerrados,
   parsearFilas,
   parsearNotaFinal,
   parsearSugerencia,
@@ -66,6 +67,7 @@ export async function evaluarCaso(slug: string, modeloId: string): Promise<Resul
   const notaDeclarada = parsearNotaFinal(salidaCruda);
   const notaCalculada = sumarPuntajes(filas);
   const sugerencia = parsearSugerencia(salidaCruda);
+  const camposCerrados = parsearCamposCerrados(salidaCruda);
 
   const tokensEntrada = respuesta.usage.input_tokens;
   const tokensSalida = respuesta.usage.output_tokens;
@@ -85,6 +87,7 @@ export async function evaluarCaso(slug: string, modeloId: string): Promise<Resul
     notaDeclarada,
     notaCalculada,
     sugerencia,
+    camposCerrados,
     razonamiento,
     salidaCruda,
     uso: {

@@ -34,6 +34,8 @@ export type FilaResultado = {
   puntaje: number | null;
   /** puntaje / peso, en porcentaje (0, 25, 50, 75 o 100 si respeta la escala). */
   nivel: number | null;
+  /** El nivel que el corrector escribió en la columna Nivel, para contrastarlo. */
+  nivelDeclarado: number | null;
   /** false si el nivel cae fuera de la escala obligatoria de la rúbrica. */
   nivelValido: boolean;
   evidencia: string;
@@ -42,6 +44,14 @@ export type FilaResultado = {
   rutasCitadas: string[];
   /** Subconjunto de rutasCitadas que existe de verdad en el caso. */
   rutasVerificadas: string[];
+};
+
+/** Las líneas fijas con las que el contrato cierra la salida. */
+export type CamposCerrados = {
+  topes: string | null;
+  inflado: string | null;
+  manipulacion: string | null;
+  queMeFalta: string | null;
 };
 
 export type Verificacion = {
@@ -76,6 +86,8 @@ export type Resultado = {
   notaDeclarada: number | null;
   notaCalculada: number;
   sugerencia: string;
+  /** Opcional: los resultados guardados antes de este campo no lo tienen. */
+  camposCerrados?: CamposCerrados;
   razonamiento: string | null;
   salidaCruda: string;
   uso: UsoModelo;

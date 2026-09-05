@@ -1,13 +1,26 @@
-import { esArchivoDeTexto, leerArchivoCaso, leerCaso } from "./repo";
+import {
+  esArchivoDeTexto,
+  leerArchivoCaso,
+  leerCaso,
+  leerUserPromptAgente,
+} from "./repo";
 import type { ArchivoCaso } from "./tipos";
 
 const MARCA_INICIO = "----- INICIO ARCHIVO";
 const MARCA_FIN = "----- FIN ARCHIVO";
 
+/** El pedido fijo del contrato, con un texto de respaldo si el archivo no está. */
+const PEDIDO_POR_DEFECTO = `Actuá según tu system prompt de corrector.
+
+Evaluá este trabajo final: el contenido completo va adjunto abajo.
+
+Leé todos los archivos siguiendo el protocolo de evidencia antes de puntuar.
+Devolvé únicamente el formato de salida definido, sin texto adicional.`;
+
 /**
- * Arma el user prompt de una corrida: el volcado completo del repositorio del
- * trabajo, delimitado archivo por archivo y marcado explícitamente como dato.
- * El contrato del agente (la rúbrica) va aparte, en el system prompt.
+ * Arma el user prompt de una corrida: el pedido fijo de agente/user_prompt.md más
+ * el volcado completo del repositorio del trabajo, delimitado archivo por archivo y
+ * marcado explícitamente como dato. La rúbrica va aparte, en el system prompt.
  */
 export function armarUserPrompt(slug: string): {
   userPrompt: string;
@@ -30,7 +43,16 @@ export function armarUserPrompt(slug: string): {
     })
     .join("\n\n");
 
-  const userPrompt = `# TRABAJO A EVALUAR
+  const pedido = (leerUserPromptAgente() ?? PEDIDO_POR_DEFECTO).replace(
+    /\[URL del repositorio[^\]]*\]/i,
+    "el contenido completo va adjunto abajo",
+  );
+
+  const userPrompt = `${pedido}
+
+---
+
+# TRABAJO A EVALUAR
 
 Repositorio: \`casos/${slug}/\` — ${caso.archivos.length} archivos, ${caso.bytesTotales} bytes.
 
@@ -52,7 +74,7 @@ ${contenidos}
 
 ---
 
-Evaluá este trabajo aplicando la rúbrica de tu contrato y respondé únicamente con el formato de salida indicado.`;
+Evaluá este trabajo aplicando la rúbrica de tu contrato y respondé únicamente con el formato de salida definido.`;
 
   return { userPrompt, archivos: caso.archivos };
 }
