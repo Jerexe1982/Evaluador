@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { evaluarCaso, haySesionChatGPT } from "@/lib/evaluador";
 import { buscarModelo, MODELO_POR_DEFECTO } from "@/lib/modelos";
-import { existeCaso } from "@/lib/repo";
+import { existeTrabajo } from "@/lib/repo";
 import { guardarResultado } from "@/lib/resultados";
 
 export const runtime = "nodejs";
@@ -18,12 +18,21 @@ export async function POST(request: Request) {
     );
   }
 
-  const cuerpo = (await request.json()) as { caso?: string; modelo?: string };
-  const caso = cuerpo.caso ?? "";
+  const cuerpo = (await request.json()) as {
+    caso?: string;
+    trabajo?: string;
+    modelo?: string;
+  };
+  // "trabajo" es el nombre nuevo —un caso de prueba o un repo de GitHub—; "caso" sigue
+  // andando para no romper nada que ya esté llamando a esta ruta.
+  const caso = cuerpo.trabajo ?? cuerpo.caso ?? "";
   const modelo = buscarModelo(cuerpo.modelo ?? "")?.id ?? MODELO_POR_DEFECTO;
 
-  if (!existeCaso(caso)) {
-    return NextResponse.json({ error: `No existe el caso "${caso}".` }, { status: 404 });
+  if (!existeTrabajo(caso)) {
+    return NextResponse.json(
+      { error: `No existe el trabajo "${caso}".` },
+      { status: 404 },
+    );
   }
 
   try {

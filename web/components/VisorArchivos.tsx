@@ -25,8 +25,8 @@ export function VisorArchivos({
               onClick={() => setRuta(archivo.ruta)}
               className={`w-full rounded px-2 py-1.5 text-left font-mono transition-colors ${
                 archivo.ruta === ruta
-                  ? "bg-texto text-fondo"
-                  : "hover:bg-borde/60"
+                  ? "bg-acento text-black"
+                  : "text-suave hover:bg-white/6"
               }`}
             >
               {archivo.ruta}
@@ -42,7 +42,7 @@ export function VisorArchivos({
           </li>
         ))}
       </ul>
-      <pre className="max-h-[32rem] overflow-auto whitespace-pre-wrap break-words rounded border border-borde bg-fondo p-4 font-mono text-xs leading-relaxed">
+      <pre className="max-h-[32rem] overflow-auto whitespace-pre-wrap break-words rounded-lg border border-borde bg-fondo p-4 font-mono text-xs leading-relaxed text-suave">
         {actual?.texto ?? "Archivo binario: no se manda al corrector."}
       </pre>
     </div>

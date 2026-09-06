@@ -58,7 +58,7 @@ export function BotonCorrer({
           value={modelo}
           onChange={(e) => setModelo(e.target.value)}
           disabled={corriendo}
-          className="rounded border border-borde bg-fondo px-3 py-2 text-sm"
+          className="rounded-lg border border-borde bg-fondo px-3 py-2 text-sm text-texto"
         >
           {MODELOS.map((m) => (
             <option key={m.id} value={m.id}>
@@ -69,7 +69,7 @@ export function BotonCorrer({
         <button
           onClick={correr}
           disabled={corriendo || !habilitado}
-          className="rounded bg-texto px-4 py-2 text-sm font-medium text-fondo transition-opacity disabled:opacity-40"
+          className="rounded-full bg-acento px-5 py-2 text-sm text-black transition-opacity hover:opacity-90 disabled:opacity-40"
         >
           {corriendo ? "Corrigiendo…" : "Correr el evaluador"}
         </button>
@@ -81,8 +81,8 @@ export function BotonCorrer({
       </div>
       <p className="text-xs text-tenue">{elegido.nota}</p>
       {!habilitado ? (
-        <div className="rounded border border-borde bg-fondo p-4">
-          <p className="mb-3 text-xs text-amber-600 dark:text-amber-400">
+        <div className="rounded-lg border border-borde bg-fondo p-4">
+          <p className="mb-3 text-xs text-alerta">
             No hay sesión de ChatGPT: sin eso el corrector no puede correr.
           </p>
           <BotonEntrar />
@@ -95,7 +95,7 @@ export function BotonCorrer({
         </p>
       ) : null}
       {error ? (
-        <p className="text-xs text-red-600 dark:text-red-400">{error}</p>
+        <p className="text-xs text-mal">{error}</p>
       ) : null}
     </div>
   );

@@ -17,13 +17,14 @@ import type { Resultado } from "./tipos";
 export { haySesionChatGPT } from "./credenciales";
 
 /**
- * Corre el agente corrector sobre un caso y devuelve el resultado ya parseado,
- * con la entrada exacta que se mandó y el uso de tokens de esa corrida.
+ * Corre el agente corrector sobre un trabajo —uno de los casos de prueba o un repositorio
+ * de GitHub clonado— y devuelve el resultado ya parseado, con la entrada exacta que se
+ * mandó y el uso de tokens de esa corrida.
  */
 export async function evaluarCaso(slug: string, modeloId: string): Promise<Resultado> {
   const modelo = buscarModelo(modeloId) ?? buscarModelo(MODELO_POR_DEFECTO)!;
   const systemPrompt = leerSystemPromptAgente();
-  const { userPrompt, archivos } = armarUserPrompt(slug);
+  const { userPrompt, archivos, trabajo } = await armarUserPrompt(slug);
   const credenciales = await obtenerCredenciales();
 
   const inicio = Date.now();
@@ -50,6 +51,8 @@ export async function evaluarCaso(slug: string, modeloId: string): Promise<Resul
   return {
     id: nuevoId(slug, fecha),
     caso: slug,
+    tipo: trabajo.tipo,
+    origen: trabajo.origen,
     fecha: fecha.toISOString(),
     modelo: respuesta.modelo,
     duracionMs,

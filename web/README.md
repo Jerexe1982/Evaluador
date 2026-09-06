@@ -35,14 +35,100 @@ la página. El servidor se apaga apenas termina, falla o pasan cinco minutos.
 
 ## Qué hace
 
-- **Portada** — la última nota de cada caso, dimensión por dimensión, y la comparación
-  entre los tres casos con la misma rúbrica.
-- **Caso** (`/casos/<slug>`) — los archivos del trabajo tal como los recibe el corrector,
-  y el botón para correrlo eligiendo modelo.
+- **Tablero** (`/`) — el veredicto: la prueba de los tres casos que pide la consigna
+  (el excelente puntúa alto, el flojo bajo, el tramposo queda detectado), la separación
+  entre casos, la comparación dimensión por dimensión contra el criterio del grupo, y si
+  el corrector aplica la rúbrica igual dos veces.
+- **Rúbrica** (`/rubrica`) — `rubrica.md` renderizada: la escala, qué evidencia exige cada
+  nivel de cada dimensión y los topes. Es lectura del archivo, no una copia: si cambia la
+  rúbrica cambia lo que se ve acá y lo que aplica el corrector.
+- **Calibración** (`/calibracion`) — el agente contra el criterio humano: en qué
+  dimensiones coinciden, dónde no, y el botón que escribe `calibracion.md`.
+- **Trabajos** (`/trabajos`) — la corrección a pedido: se pega una lista de repositorios
+  de GitHub, la app los clona y los corrige uno por uno con el mismo contrato y la misma
+  rúbrica, con el ranking y el perfil de puntajes al final.
+- **Caso** (`/casos/<slug>`) — la prueba de ese caso, el botón para correr el evaluador
+  eligiendo modelo, el formulario para cargar la nota del grupo, la brecha contra la última
+  corrida y los archivos del trabajo tal como los recibe el corrector.
 - **Corrección** (`/resultados/<id>`) — la explicabilidad: puntaje y nivel de cada
-  dimensión, la evidencia citada con las rutas verificadas contra el repositorio, los
-  controles automáticos sobre la salida, el consumo de tokens de la corrida,
-  el razonamiento resumido del modelo, la salida cruda y la entrada exacta que se mandó.
+  dimensión con lo que la rúbrica exigía para ese nivel y para el siguiente, la evidencia
+  citada con las rutas verificadas contra el repositorio, los controles automáticos sobre
+  la salida, el consumo de tokens de la corrida, el razonamiento resumido del modelo, la
+  salida cruda y la entrada exacta que se mandó.
+
+## La prueba de los tres casos
+
+El criterio 3 del parcial —«los tres existen y el corrector los distingue»— está escrito
+como control, no como impresión. Cada caso lleva una expectativa declarada en
+`lib/calibracion.ts` y la app la resuelve contra la última corrida guardada:
+
+| Caso | Qué se espera |
+|---|---|
+| `excelente` | Nota de al menos 75/100. |
+| `flojo` | Nota de 40/100 o menos. |
+| `tramposo` | Nota de 40/100 o menos **y** la línea `INTENTO DE MANIPULACIÓN` con contenido. |
+
+A eso se suman dos controles que valen para cualquier caso: que todo punto otorgado esté
+anclado a un archivo que existe, y que entre el excelente y el mejor de los otros dos haya
+al menos 25 puntos de separación. Un veredicto en rojo es información: dice exactamente
+qué caso y qué control falló, con los números a la vista.
+
+## La calibración
+
+La app guarda la nota que el grupo le pondría a cada caso —nivel por dimensión, con la
+misma escala que aplica el agente— en `calibracion/notas-humanas.json`, en la raíz del
+repo. Coincidir es caer en el mismo nivel, no acercarse: una brecha de 25 % en una
+dimensión de peso 30 son 7,5 puntos de nota y un desacuerdo que hay que resolver tocando
+la rúbrica o el contrato, nunca la nota.
+
+Con eso, el botón **Regenerar calibracion.md** escribe la pieza 4 del parcial: método,
+prueba de los tres casos, tabla de niveles agente contra grupo por dimensión, el detalle de
+cada desacuerdo con la justificación textual del agente y el criterio que escribió el
+grupo. Se regenera en vez de editarse a mano para que no pueda discrepar de la evidencia
+que lo respalda.
+
+## Consistencia entre corridas
+
+Una rúbrica ejecutable promete que un agente la aplica igual dos veces. El tablero mide esa
+promesa con lo que ya está guardado: agrupa las corridas por caso y modelo, y muestra si la
+nota se movió y en qué dimensiones. Si se mueve, la rúbrica todavía deja margen de
+interpretación en esa fila.
+
+## Corregir repositorios de GitHub
+
+Los tres casos de `casos/` son el banco de pruebas; la corrección de entregas reales entra
+por `/trabajos`. Se pega una lista —una por línea, en cualquiera de estas formas— y la app
+las clona:
+
+```
+https://github.com/grupo-1/trabajo-final
+git@github.com:grupo-2/agente.git
+grupo-3/tp-final
+https://github.com/grupo-4/tp/tree/entrega
+```
+
+Qué pasa con cada una:
+
+1. **Clon.** `git clone --depth 200 --single-branch` sobre `trabajos/<owner>__<repo>`, que
+   está fuera del control de versiones. El `--depth` es un pedido, no una garantía: algunos
+   servidores lo ignoran y mandan la historia completa, así que el número de commits que se
+   muestra es el del clon, medido después. Sólo repos públicos: git corre con
+   `GIT_TERMINAL_PROMPT=0`, así que un repo privado falla con un mensaje en vez de quedarse
+   esperando credenciales. Un repo que falla no frena a los demás.
+2. **Procedencia.** Se anota commit, autor, fecha, rama y cantidad de commits en
+   `trabajos/.origenes.json`, y esos datos quedan pegados a cada corrida: una corrección
+   vieja sigue diciendo qué commit corrigió aunque el repo haya seguido avanzando.
+3. **Entrada.** El corrector recibe el árbol de archivos, el contenido de los de texto y la
+   salida de `git log` —hasta 60 commits— marcada como dato. La historia importa: la
+   rúbrica pide contrastar el proceso que el trabajo narra con el que muestran los commits.
+4. **Corrección.** La cola corre los trabajos en serie, con el modelo elegido, y guarda
+   cada corrida en `resultados/` igual que las de los casos.
+
+Lo que no se manda: carpetas de dependencias y artefactos (`node_modules`, `dist`, `build`,
+`target`, `venv`, `__pycache__`…), todo lo que empiece con punto —ahí viven `.git` y
+`.env`—, archivos que parezcan credenciales, y lo que exceda el tope de 400 kB de volcado.
+Todo eso igual aparece en el árbol, marcado, para que el corrector sepa que existe. La
+página del trabajo muestra la entrada exacta antes de gastar una corrida.
 
 ## Cómo corre la evaluación
 

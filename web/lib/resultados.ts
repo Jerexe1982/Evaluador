@@ -41,6 +41,7 @@ export function listarResultados(caso?: string): ResumenResultado[] {
     .map((r) => ({
       id: r.id,
       caso: r.caso,
+      tipo: r.tipo ?? "caso",
       fecha: r.fecha,
       modelo: r.modelo,
       notaCalculada: r.notaCalculada,

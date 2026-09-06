@@ -63,7 +63,7 @@ export function BotonEntrar() {
       <button
         onClick={entrar}
         disabled={esperando}
-        className="rounded bg-texto px-4 py-2 text-sm font-medium text-fondo transition-opacity disabled:opacity-40"
+        className="rounded-full bg-acento px-5 py-2 text-sm text-black transition-opacity hover:opacity-90 disabled:opacity-40"
       >
         {esperando ? "Esperando a OpenAI…" : "Entrar con ChatGPT"}
       </button>
@@ -71,7 +71,7 @@ export function BotonEntrar() {
       {esperando ? (
         <p className="text-xs text-tenue">
           Se abrió la pantalla de OpenAI en otra pestaña. Si el navegador la bloqueó,{" "}
-          <a href={estado.url} target="_blank" rel="noopener noreferrer" className="underline">
+          <a href={estado.url} target="_blank" rel="noopener noreferrer" className="text-acento underline">
             abrila desde acá
           </a>
           .
@@ -79,9 +79,9 @@ export function BotonEntrar() {
       ) : null}
 
       {estado.fase === "error" ? (
-        <p className="text-xs text-red-600 dark:text-red-400">{estado.mensaje}</p>
+        <p className="text-xs text-mal">{estado.mensaje}</p>
       ) : null}
-      {error ? <p className="text-xs text-red-600 dark:text-red-400">{error}</p> : null}
+      {error ? <p className="text-xs text-mal">{error}</p> : null}
 
       <p className="text-xs text-tenue">
         Es el mismo login que hace <code className="font-mono">codex login</code>: la sesión

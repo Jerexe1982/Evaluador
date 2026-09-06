@@ -14,17 +14,45 @@ export type Dimension = {
 };
 
 export type ArchivoCaso = {
-  /** Ruta relativa a la carpeta del caso, p. ej. "prompts/system_prompt.md". */
+  /** Ruta relativa a la raíz del trabajo, p. ej. "prompts/system_prompt.md". */
   ruta: string;
   bytes: number;
 };
 
-export type Caso = {
-  /** Nombre de la carpeta dentro de casos/, p. ej. "excelente". */
-  slug: string;
+/**
+ * De dónde salió un trabajo: de `casos/` —los tres casos de prueba del grupo— o de un
+ * repositorio de GitHub clonado a pedido para corregirlo.
+ */
+export type TipoTrabajo = "caso" | "github";
+
+export type OrigenGithub = {
+  url: string;
+  owner: string;
+  repo: string;
+  /** La rama pedida, o null si se clonó la que el repo tenga por defecto. */
+  ref: string | null;
+  commit: string;
+  mensajeCommit: string;
+  fechaCommit: string;
+  autorCommit: string;
+  /** Commits alcanzados por el clon: la historia que el corrector llega a ver. */
+  commits: number;
+  clonadoEn: string;
+};
+
+export type Trabajo = {
+  /** Identificador y nombre de carpeta: "excelente" o "owner__repo". */
+  id: string;
+  tipo: TipoTrabajo;
   archivos: ArchivoCaso[];
   bytesTotales: number;
+  /** Archivos que existen en el repo pero no se le mandan al corrector. */
+  omitidos: number;
+  origen: OrigenGithub | null;
 };
+
+/** Los tres casos de prueba son trabajos como cualquier otro. */
+export type Caso = Trabajo;
 
 export type FilaResultado = {
   clave: ClaveDimension;
@@ -79,7 +107,11 @@ export type EntradaEnviada = {
 
 export type Resultado = {
   id: string;
+  /** Id del trabajo corregido: el slug del caso o del repo clonado. */
   caso: string;
+  tipo?: TipoTrabajo;
+  /** De dónde se tomó el trabajo, cuando vino de GitHub. */
+  origen?: OrigenGithub | null;
   fecha: string;
   modelo: string;
   duracionMs: number;
@@ -100,10 +132,55 @@ export type Resultado = {
 export type ResumenResultado = {
   id: string;
   caso: string;
+  tipo: TipoTrabajo;
   fecha: string;
   modelo: string;
   notaCalculada: number;
   notaDeclarada: number | null;
   tokensTotales: number;
   alertas: number;
+};
+
+/**
+ * Lo que el grupo espera de cada caso de prueba, según la consigna del parcial:
+ * el excelente puntúa alto, el flojo bajo, y el tramposo además tiene que quedar
+ * detectado como intento de manipulación.
+ */
+export type Expectativa = {
+  /** Qué demuestra este caso. Se muestra arriba del veredicto. */
+  proposito: string;
+  notaMinima: number | null;
+  notaMaxima: number | null;
+  /** true cuando el corrector tiene que reportar el intento de manipulación. */
+  exigeDeteccion: boolean;
+};
+
+/** La nota que le hubiera puesto el grupo a un caso, nivel por dimensión. */
+export type NotaHumana = {
+  /** Nivel en % del peso: 0, 25, 50, 75 o 100. */
+  niveles: Partial<Record<ClaveDimension, number>>;
+  /** Por qué esa nota, y qué se discutió. Es la materia prima de calibracion.md. */
+  comentario: string;
+  actualizado: string | null;
+};
+
+export type CalibracionCaso = {
+  caso: string;
+  expectativa: Expectativa;
+  humano: NotaHumana;
+};
+
+/** Una dimensión, con lo que puso el agente y lo que hubiera puesto el grupo. */
+export type Brecha = {
+  clave: ClaveDimension;
+  nombre: string;
+  peso: number;
+  puntajeAgente: number | null;
+  nivelAgente: number | null;
+  puntajeHumano: number | null;
+  nivelHumano: number | null;
+  /** agente − humano, en puntos de la nota final. */
+  delta: number | null;
+  /** true cuando los dos cayeron en el mismo nivel de la escala. */
+  coincide: boolean;
 };
