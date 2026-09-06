@@ -2,6 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { BotonEntrar } from "@/components/BotonEntrar";
 import { MODELOS, MODELO_POR_DEFECTO } from "@/lib/modelos";
 
 /**
@@ -11,10 +12,13 @@ import { MODELOS, MODELO_POR_DEFECTO } from "@/lib/modelos";
 export function BotonCorrer({
   caso,
   habilitado,
+  plan,
   cantidadArchivos,
 }: {
   caso: string;
   habilitado: boolean;
+  /** El plan de ChatGPT que paga la corrida, cuando hay sesión. */
+  plan: string | null;
   cantidadArchivos: number;
 }) {
   const router = useRouter();
@@ -70,16 +74,19 @@ export function BotonCorrer({
           {corriendo ? "Corrigiendo…" : "Correr el evaluador"}
         </button>
         <span className="text-xs text-tenue">
-          Lo paga tu suscripción de ChatGPT, no una clave de API.
+          {habilitado
+            ? `Lo paga tu suscripción de ChatGPT${plan ? ` (plan ${plan})` : ""}, no una clave de API.`
+            : "La corrida la paga tu suscripción de ChatGPT, no una clave de API."}
         </span>
       </div>
       <p className="text-xs text-tenue">{elegido.nota}</p>
       {!habilitado ? (
-        <p className="text-xs text-amber-600 dark:text-amber-400">
-          No hay sesión de ChatGPT: corré <code className="font-mono">codex login</code> y
-          elegí «Sign in with ChatGPT». La app lee la sesión que deja Codex en{" "}
-          <code className="font-mono">~/.codex/auth.json</code>.
-        </p>
+        <div className="rounded border border-borde bg-fondo p-4">
+          <p className="mb-3 text-xs text-amber-600 dark:text-amber-400">
+            No hay sesión de ChatGPT: sin eso el corrector no puede correr.
+          </p>
+          <BotonEntrar />
+        </div>
       ) : null}
       {corriendo ? (
         <p className="text-xs text-tenue">

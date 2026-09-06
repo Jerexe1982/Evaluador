@@ -3,7 +3,7 @@ import { notFound } from "next/navigation";
 import { BotonCorrer } from "@/components/BotonCorrer";
 import { VisorArchivos, type ArchivoConTexto } from "@/components/VisorArchivos";
 import { Nota, Panel, Titulo } from "@/components/ui";
-import { haySesionChatGPT } from "@/lib/evaluador";
+import { resumenSesion } from "@/lib/credenciales";
 import { bytes, fecha, tokens } from "@/lib/formato";
 import { esArchivoDeTexto, existeCaso, leerArchivoCaso, leerCaso } from "@/lib/repo";
 import { listarResultados } from "@/lib/resultados";
@@ -22,6 +22,7 @@ export default async function PaginaCaso({
   if (!existeCaso(slug)) notFound();
 
   const caso = leerCaso(slug);
+  const sesion = resumenSesion();
   const corridas = listarResultados(slug);
   const archivos: ArchivoConTexto[] = caso.archivos.map((archivo) => ({
     ...archivo,
@@ -45,7 +46,8 @@ export default async function PaginaCaso({
         <Titulo>Correr el evaluador sobre este caso</Titulo>
         <BotonCorrer
           caso={slug}
-          habilitado={haySesionChatGPT()}
+          habilitado={sesion.activa}
+          plan={sesion.plan}
           cantidadArchivos={caso.archivos.length}
         />
       </Panel>

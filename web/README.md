@@ -8,19 +8,30 @@ que puso y entender de dónde sale cada punto.
 ```bash
 cd web
 npm install
-codex login          # una sola vez, eligiendo «Sign in with ChatGPT»
 npm run dev
 ```
 
-Queda en `http://localhost:3000`. Sin sesión de ChatGPT la app abre igual: se ven los
-casos, sus archivos y las corridas ya guardadas; el botón de correr queda deshabilitado.
+Queda en `http://localhost:3000`. La primera vez, en la página de cualquier caso aparece
+el botón **Entrar con ChatGPT**: abre el login de OpenAI en otra pestaña y, al volver, el
+corrector queda habilitado. Desde la terminal, `codex login` hace exactamente lo mismo:
+las dos formas guardan la sesión en el mismo archivo. Sin sesión la app abre igual —se ven
+los casos, sus archivos y las corridas ya guardadas— pero el botón de correr queda
+deshabilitado.
 
 No hace falta ninguna clave de API. La app corre el corrector contra el backend de Codex
-—el que atiende a las suscripciones de ChatGPT Plus/Pro— usando la sesión que el CLI de
-Codex deja en `~/.codex/auth.json`. Lee ese archivo, renueva el access token contra
-`auth.openai.com` cuando venció y guarda el token rotado en el mismo lugar, para no dejar
-al propio CLI sin sesión. El flujo está tomado del proveedor «OpenAI (ChatGPT Plus/Pro)»
-del agente [pi](https://pi.dev/docs/latest/providers), que hace exactamente esto.
+—el que atiende a las suscripciones de ChatGPT Plus/Pro— con la sesión guardada en
+`~/.codex/auth.json`. Renueva el access token contra `auth.openai.com` cuando venció y
+guarda el token rotado en el mismo lugar, para no dejar al propio CLI sin sesión. El flujo
+está tomado del proveedor «OpenAI (ChatGPT Plus/Pro)» del agente
+[pi](https://pi.dev/docs/latest/providers), que hace exactamente esto.
+
+### El login desde la app
+
+`POST /api/login` arranca un OAuth con PKCE contra `auth.openai.com` y levanta un servidor
+efímero en `localhost:1455` para recibir el código: OpenAI tiene registrado ese puerto como
+único destino de vuelta del cliente de Codex, así que tiene que estar libre mientras dura
+el login. El botón consulta `GET /api/login` hasta que la sesión queda guardada y refresca
+la página. El servidor se apaga apenas termina, falla o pasan cinco minutos.
 
 ## Qué hace
 

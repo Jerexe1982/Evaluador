@@ -12,12 +12,21 @@ import path from "node:path";
  */
 
 /** El client_id público del flujo OAuth de Codex. No es un secreto. */
-const CLIENT_ID = "app_EMoamEEZ73f0CkXaXp7hrann";
-const URL_TOKEN = "https://auth.openai.com/oauth/token";
+export const CLIENT_ID = "app_EMoamEEZ73f0CkXaXp7hrann";
+export const URL_AUTORIZAR = "https://auth.openai.com/oauth/authorize";
+export const URL_TOKEN = "https://auth.openai.com/oauth/token";
 /** El namespace donde el access token guarda los datos de la cuenta de ChatGPT. */
 const CLAIM_AUTH = "https://api.openai.com/auth";
 /** Se renueva un minuto antes del vencimiento para no cortar una corrida en curso. */
 const MARGEN_MS = 60_000;
+
+/** Lo que la app muestra de la sesión sin salir a la red. */
+export type Sesion = {
+  activa: boolean;
+  plan: string | null;
+  /** ISO del vencimiento del access token; null si no se pudo leer. */
+  vence: string | null;
+};
 
 export type Credenciales = {
   accessToken: string;
@@ -42,6 +51,14 @@ type ArchivoAuth = {
 export function rutaAuth(): string {
   const casa = process.env.CODEX_HOME || path.join(os.homedir(), ".codex");
   return path.join(casa, "auth.json");
+}
+
+function escribirArchivo(datos: ArchivoAuth): void {
+  const archivo = rutaAuth();
+  fs.mkdirSync(path.dirname(archivo), { recursive: true });
+  const temporal = `${archivo}.tmp-${process.pid}`;
+  fs.writeFileSync(temporal, `${JSON.stringify(datos, null, 2)}\n`, { mode: 0o600 });
+  fs.renameSync(temporal, archivo);
 }
 
 function leerArchivo(): ArchivoAuth | null {
@@ -85,6 +102,44 @@ export function haySesionChatGPT(): boolean {
   return Boolean(leerArchivo()?.tokens?.access_token);
 }
 
+/** El estado de la sesión para la vista: no renueva nada ni sale a la red. */
+export function resumenSesion(): Sesion {
+  const access = leerArchivo()?.tokens?.access_token;
+  if (!access) return { activa: false, plan: null, vence: null };
+  const vence = venceEn(access);
+  return {
+    activa: true,
+    plan: datosCuenta(access).plan,
+    vence: vence === null ? null : new Date(vence).toISOString(),
+  };
+}
+
+/**
+ * Guarda una sesión recién obtenida en el mismo auth.json que usa el CLI de Codex,
+ * respetando lo que ya hubiera en el archivo.
+ */
+export function guardarSesion(tokens: {
+  access: string;
+  refresh: string;
+  idToken?: string;
+}): void {
+  const previo = leerArchivo() ?? {};
+  const { accountId } = datosCuenta(tokens.access);
+  escribirArchivo({
+    ...previo,
+    auth_mode: "chatgpt",
+    OPENAI_API_KEY: null,
+    tokens: {
+      ...previo.tokens,
+      ...(tokens.idToken ? { id_token: tokens.idToken } : {}),
+      access_token: tokens.access,
+      refresh_token: tokens.refresh,
+      ...(accountId ? { account_id: accountId } : {}),
+    },
+    last_refresh: new Date().toISOString(),
+  });
+}
+
 async function renovar(refreshToken: string): Promise<{ access: string; refresh: string }> {
   const respuesta = await fetch(URL_TOKEN, {
     method: "POST",
@@ -116,15 +171,11 @@ async function renovar(refreshToken: string): Promise<{ access: string; refresh:
  * próxima corrida —y el propio CLI de Codex— se quedan sin sesión.
  */
 function guardarTokens(datos: ArchivoAuth, access: string, refresh: string): void {
-  const actualizado: ArchivoAuth = {
+  escribirArchivo({
     ...datos,
     tokens: { ...datos.tokens, access_token: access, refresh_token: refresh },
     last_refresh: new Date().toISOString(),
-  };
-  const archivo = rutaAuth();
-  const temporal = `${archivo}.tmp-${process.pid}`;
-  fs.writeFileSync(temporal, `${JSON.stringify(actualizado, null, 2)}\n`, { mode: 0o600 });
-  fs.renameSync(temporal, archivo);
+  });
 }
 
 const FALTA_SESION =
