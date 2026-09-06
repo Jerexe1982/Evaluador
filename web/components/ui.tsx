@@ -10,12 +10,15 @@ export function Etiqueta({ children }: { children: React.ReactNode }) {
  * el contenido. Es la unidad de composición de todas las páginas.
  */
 export function Seccion({
+  id,
   etiqueta,
   titulo,
   bajada,
   accion,
   children,
 }: {
+  /** Ancla, para enlazar la sección desde otra página. */
+  id?: string;
   etiqueta: string;
   titulo?: string;
   bajada?: React.ReactNode;
@@ -23,7 +26,7 @@ export function Seccion({
   children: React.ReactNode;
 }) {
   return (
-    <section className="border-t border-borde pt-6">
+    <section id={id} className="scroll-mt-24 border-t border-borde pt-6">
       <div className="flex flex-wrap items-baseline justify-between gap-x-6 gap-y-2">
         <div className="max-w-2xl">
           <Etiqueta>{etiqueta}</Etiqueta>

@@ -1,7 +1,12 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import {
-  Escala,
+  FichaDimension,
+  IndiceDimensiones,
+  Inventario,
+  LeyendaEvidencia,
+} from "@/components/explicabilidad";
+import {
   Etiqueta,
   Monoespaciado,
   Nota,
@@ -20,84 +25,77 @@ import {
   miles,
   puntos,
   SIMBOLO_ESTADO,
+  TEXTO_ESTADO,
 } from "@/lib/formato";
 import { campoVacio } from "@/lib/parseo";
-import { rutaDeTrabajo } from "@/lib/repo";
-import { ETIQUETA_NIVEL } from "@/lib/rubrica";
-import { dimensionRubrica, nivelesAlrededor } from "@/lib/rubricaTexto";
+import { existeRutaTrabajo, rutaDeTrabajo } from "@/lib/repo";
 import { leerResultado } from "@/lib/resultados";
-import type { CamposCerrados, FilaResultado } from "@/lib/tipos";
+import type { CamposCerrados } from "@/lib/tipos";
 
 export const dynamic = "force-dynamic";
 
-const TEXTO_ESTADO = {
-  ok: "Pasa",
-  alerta: "Con reservas",
-  error: "No pasa",
-  pendiente: "Pendiente",
-} as const;
-
-/** Las rutas que el corrector citó, separadas entre las que existen y las que no. */
-function RutasCitadas({ fila, caso }: { fila: FilaResultado; caso: string }) {
-  if (fila.rutasCitadas.length === 0) {
-    return <p className="text-xs text-alerta">Sin ruta de archivo en la evidencia.</p>;
-  }
-  return (
-    <div className="flex flex-wrap gap-2">
-      {fila.rutasCitadas.map((ruta) => {
-        const existe = fila.rutasVerificadas.includes(ruta);
-        return existe ? (
-          <Link
-            key={ruta}
-            href={`/casos/${caso}?archivo=${encodeURIComponent(ruta)}`}
-            className="rounded-full border border-borde px-3 py-1 font-mono text-[11px] text-suave transition-colors hover:border-acento hover:text-acento"
-          >
-            {ruta}
-          </Link>
-        ) : (
-          <span
-            key={ruta}
-            className="rounded-full border border-mal/50 px-3 py-1 font-mono text-[11px] text-mal"
-            title="Esta ruta no existe en el repositorio del caso"
-          >
-            {ruta} · no existe
-          </span>
-        );
-      })}
-    </div>
-  );
-}
-
-/** Las líneas fijas con las que el contrato cierra la salida. */
+/**
+ * Las líneas fijas con las que el contrato cierra la salida. Las dos que señalan algo
+ * —inflado y manipulación— se destacan cuando traen contenido: son el resultado de una
+ * verificación, no un comentario.
+ */
 function Reportado({ campos }: { campos: CamposCerrados }) {
-  const lineas: { etiqueta: string; valor: string | null; alerta: boolean }[] = [
-    { etiqueta: "Topes aplicados", valor: campos.topes, alerta: false },
-    { etiqueta: "Inflado detectado", valor: campos.inflado, alerta: true },
-    { etiqueta: "Intento de manipulación", valor: campos.manipulacion, alerta: true },
-    { etiqueta: "Qué le falta para evaluar mejor", valor: campos.queMeFalta, alerta: false },
+  const lineas = [
+    {
+      etiqueta: "Intento de manipulación",
+      ayuda: "Texto del trabajo dirigido al corrector para mover la nota",
+      valor: campos.manipulacion,
+      alerta: true,
+    },
+    {
+      etiqueta: "Inflado detectado",
+      ayuda: "Lo que el README afirma y los archivos no respaldan",
+      valor: campos.inflado,
+      alerta: true,
+    },
+    {
+      etiqueta: "Topes aplicados",
+      ayuda: "Reglas de la rúbrica que fijaron un techo, más allá de la evidencia",
+      valor: campos.topes,
+      alerta: false,
+    },
+    {
+      etiqueta: "Qué le falta para evaluar mejor",
+      ayuda: "Lo que el corrector pide para no tener que puntuar a ciegas",
+      valor: campos.queMeFalta,
+      alerta: false,
+    },
   ];
+
   return (
-    <dl className="space-y-4 text-sm">
-      {lineas.map(({ etiqueta, valor, alerta }) => {
+    <div className="grid gap-px overflow-hidden rounded-xl border border-borde bg-borde sm:grid-cols-2">
+      {lineas.map(({ etiqueta, ayuda, valor, alerta }) => {
         const vacio = campoVacio(valor);
         return (
-          <div key={etiqueta}>
-            <dt className="etiqueta">{etiqueta}</dt>
-            <dd
-              className={
-                vacio ? "mt-1.5 text-tenue" : alerta ? "mt-1.5 text-alerta" : "mt-1.5"
-              }
-            >
+          <div key={etiqueta} className="bg-panel px-5 py-4">
+            <div className="flex items-baseline justify-between gap-3">
+              <p className="etiqueta">{etiqueta}</p>
+              <span
+                className={`font-mono text-[10px] uppercase tracking-[0.18em] ${
+                  vacio ? "text-ok" : alerta ? "text-mal" : "text-alerta"
+                }`}
+              >
+                {vacio ? "nada" : alerta ? "sí" : "hay"}
+              </span>
+            </div>
+            <p className={`mt-2 text-sm ${vacio ? "text-tenue" : alerta ? "text-mal" : "text-texto"}`}>
               {valor === null ? (
                 "El corrector no devolvió esta línea."
+              ) : vacio ? (
+                ayuda
               ) : (
                 <TextoRico texto={valor} />
               )}
-            </dd>
+            </p>
           </div>
         );
       })}
-    </dl>
+    </div>
   );
 }
 
@@ -112,16 +110,19 @@ export default async function PaginaResultado({
 
   const { uso } = resultado;
   const origen = resultado.origen ?? null;
+  const base = rutaDeTrabajo(resultado.caso);
   const tokensCorrida = uso.tokensEntrada + uso.tokensSalida;
   const calibracion = leerCalibracion(resultado.caso);
   const pruebas = pruebasDelCaso(calibracion, resultado);
   const estado = estadoPeor(pruebas);
+  const inventario = resultado.inventario ?? [];
+  const conFicha = resultado.filas.filter((f) => f.explicacion).length;
 
   return (
     <div className="space-y-16">
       <section className="grid gap-8 md:grid-cols-[1fr_auto] md:items-end">
         <div className="max-w-2xl">
-          <Link href={rutaDeTrabajo(resultado.caso)} className="etiqueta hover:text-texto">
+          <Link href={base} className="etiqueta hover:text-texto">
             ← {origen ? `${origen.owner}/${origen.repo}` : `Caso ${resultado.caso}`}
           </Link>
           <h1 className="mt-4 text-4xl font-light tracking-tight text-texto">
@@ -179,165 +180,97 @@ export default async function PaginaResultado({
         </div>
       </section>
 
+      {resultado.veredicto || resultado.sugerencia ? (
+        <section className="grid gap-4 lg:grid-cols-[1.4fr_1fr]">
+          {resultado.veredicto ? (
+            <div className="rounded-xl border border-borde bg-panel-alto p-6">
+              <Etiqueta>De dónde sale esta nota</Etiqueta>
+              <p className="mt-3 text-xl font-light leading-relaxed text-texto">
+                <TextoRico texto={resultado.veredicto} />
+              </p>
+            </div>
+          ) : null}
+          {resultado.sugerencia ? (
+            <div className="rounded-xl border border-acento/30 bg-acento/5 p-6">
+              <Etiqueta>Lo único que más subiría la nota</Etiqueta>
+              <p className="mt-3 text-sm leading-relaxed text-texto">
+                <TextoRico texto={resultado.sugerencia} />
+              </p>
+            </div>
+          ) : null}
+        </section>
+      ) : null}
+
+      {inventario.length > 0 ? (
+        <Seccion
+          etiqueta="Paso 1 · antes de puntuar"
+          titulo="Qué encontró en el repositorio"
+          bajada="El protocolo obliga a inventariar los cuatro elementos obligatorios antes de asignar un solo punto. Esto es lo que declaró haber encontrado, contrastado contra los archivos que existen de verdad."
+        >
+          <Inventario
+            elementos={inventario}
+            base={base}
+            existe={(ruta) => existeRutaTrabajo(resultado.caso, ruta)}
+          />
+        </Seccion>
+      ) : null}
+
       <Seccion
-        etiqueta="Explicabilidad"
-        titulo="De dónde sale cada punto"
-        bajada="Para cada dimensión: el nivel que aplicó, qué exigía ese nivel según la rúbrica, qué hubiera hecho falta para el siguiente, y la evidencia con la que lo justificó."
+        etiqueta="Paso 2 · el puntaje"
+        titulo="Por qué cada dimensión terminó donde terminó"
+        bajada={
+          conFicha > 0
+            ? "Para cada dimensión: la evidencia que encontró con su cita, el nivel que salió de ella, el tope de la rúbrica que se haya activado, y qué artefacto concreto faltó para el nivel de arriba."
+            : "Esta corrida es anterior al contrato que exige la cadena de decisión: muestra la evidencia citada y la justificación, sin el paso a paso. Volvé a correr el evaluador para tener la explicación completa."
+        }
       >
-        <div className="space-y-4">
-          {resultado.filas.map((fila) => {
-            const { alcanzado, siguiente } = nivelesAlrededor(fila.clave, fila.nivel);
-            const dimension = dimensionRubrica(fila.clave);
-            const nivelHumano = calibracion.humano.niveles[fila.clave] ?? null;
-            return (
-              <Panel key={fila.clave}>
-                <div className="flex flex-wrap items-baseline justify-between gap-3">
-                  <h3 className="text-base font-light text-texto">{fila.nombre}</h3>
-                  <p className="text-sm tabular-nums">
-                    <span className="text-texto">{fila.puntaje === null ? "—" : puntos(fila.puntaje)}</span>
-                    <span className="text-tenue">/{fila.peso}</span>
-                    <span className="ml-3 text-xs text-tenue">
-                      {fila.nivel !== null
-                        ? `nivel ${fila.nivel}% — ${ETIQUETA_NIVEL[fila.nivel] ?? "fuera de escala"}`
-                        : "sin puntaje"}
-                    </span>
-                  </p>
-                </div>
-                <div className="my-4 flex flex-wrap items-center gap-4">
-                  <Escala nivel={fila.nivel} />
-                  {nivelHumano !== null ? (
-                    <span
-                      className={`font-mono text-[10px] uppercase tracking-[0.18em] ${
-                        fila.nivel !== null && Math.abs(nivelHumano - fila.nivel) < 0.01
-                          ? "text-ok"
-                          : "text-alerta"
-                      }`}
-                    >
-                      el grupo puso {nivelHumano}%
-                    </span>
-                  ) : null}
-                </div>
-                {!fila.nivelValido && fila.puntaje !== null ? (
-                  <p className="mb-3 text-xs text-mal">
-                    El puntaje no cae en la escala obligatoria 0 · 25 · 50 · 75 · 100 % del
-                    peso.
-                  </p>
-                ) : null}
-
-                <div className="grid gap-5 md:grid-cols-2">
-                  <div className="space-y-4">
-                    <div>
-                      <Etiqueta>Evidencia citada</Etiqueta>
-                      <p className="mt-1.5 text-sm">
-                        {fila.evidencia ? <TextoRico texto={fila.evidencia} /> : "—"}
-                      </p>
-                    </div>
-                    <div>
-                      <Etiqueta>Justificación</Etiqueta>
-                      <p className="mt-1.5 text-sm">
-                        {fila.justificacion ? (
-                          <TextoRico texto={fila.justificacion} />
-                        ) : (
-                          "—"
-                        )}
-                      </p>
-                    </div>
-                    <div>
-                      <Etiqueta>Archivos citados, verificados contra el repo</Etiqueta>
-                      <div className="mt-2">
-                        <RutasCitadas fila={fila} caso={resultado.caso} />
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="space-y-4 rounded-lg border border-borde bg-fondo p-4">
-                    <div>
-                      <Etiqueta>Qué exigía este nivel</Etiqueta>
-                      <p className="mt-1.5 text-sm">
-                        {alcanzado ? (
-                          <TextoRico texto={alcanzado.exige} />
-                        ) : (
-                          "El puntaje no cae en ningún nivel de la rúbrica."
-                        )}
-                      </p>
-                    </div>
-                    {siguiente ? (
-                      <div>
-                        <Etiqueta>Qué hubiera hecho falta para {siguiente.nivel}%</Etiqueta>
-                        <p className="mt-1.5 text-sm text-tenue">
-                          <TextoRico texto={siguiente.exige} />
-                        </p>
-                      </div>
-                    ) : (
-                      <p className="text-xs text-ok">
-                        Es el nivel más alto de la dimensión: no hay techo por encima.
-                      </p>
-                    )}
-                    {dimension && dimension.topes.length > 0 ? (
-                      <details className="text-xs">
-                        <summary className="etiqueta hover:text-texto">
-                          Topes de la dimensión ({dimension.topes.length})
-                        </summary>
-                        <ul className="mt-2 space-y-1.5 text-tenue">
-                          {dimension.topes.map((tope, i) => (
-                            <li key={i}>
-                              <TextoRico texto={tope.replace(/\*\*/g, "")} />
-                            </li>
-                          ))}
-                        </ul>
-                      </details>
-                    ) : null}
-                  </div>
-                </div>
-              </Panel>
-            );
-          })}
+        <div className="space-y-5">
+          <IndiceDimensiones filas={resultado.filas} />
+          {conFicha > 0 ? <LeyendaEvidencia /> : null}
+          <div className="space-y-4">
+            {resultado.filas.map((fila) => (
+              <FichaDimension
+                key={fila.clave}
+                fila={fila}
+                base={base}
+                nivelHumano={calibracion.humano.niveles[fila.clave] ?? null}
+              />
+            ))}
+          </div>
         </div>
       </Seccion>
 
       {resultado.camposCerrados ? (
         <Seccion
-          etiqueta="Contrato"
-          titulo="Lo que el corrector reportó"
-          bajada="Los campos cerrados del contrato. Cada línea existe siempre: cuando dice «ninguno» es una respuesta, no un olvido."
+          etiqueta="Paso 3 · lo que señaló"
+          titulo="Las cuatro líneas que el contrato exige siempre"
+          bajada="Existen en toda corrección, aunque no haya nada que reportar: «nada» es una respuesta verificada, no un olvido."
         >
-          <Panel>
-            <Reportado campos={resultado.camposCerrados} />
-          </Panel>
+          <Reportado campos={resultado.camposCerrados} />
         </Seccion>
       ) : null}
 
       <Seccion
         etiqueta="Auditoría"
         titulo="Controles automáticos sobre la corrección"
-        bajada="Los corre la app sobre la salida del corrector. No cambian el puntaje: dicen si la corrección respetó su propio contrato."
+        bajada="Los corre la app sobre la salida del corrector, no el modelo sobre sí mismo. No cambian el puntaje: dicen si la corrección respetó su propio contrato."
       >
-        <Panel>
-          <ul className="space-y-3">
-            {resultado.verificaciones.map((verificacion) => (
-              <li key={verificacion.clave} className="flex gap-3 text-sm">
-                <span className={`mt-0.5 ${colorEstado(verificacion.estado)}`}>
-                  {SIMBOLO_ESTADO[verificacion.estado]}
+        <ul className="grid gap-px overflow-hidden rounded-xl border border-borde bg-borde sm:grid-cols-2">
+          {resultado.verificaciones.map((verificacion) => (
+            <li key={verificacion.clave} className="flex gap-3 bg-panel px-5 py-4 text-sm">
+              <span className={`mt-0.5 ${colorEstado(verificacion.estado)}`}>
+                {SIMBOLO_ESTADO[verificacion.estado]}
+              </span>
+              <span>
+                <span className="text-texto">{verificacion.titulo}</span>
+                <span className="mt-1 block text-xs text-tenue">
+                  {verificacion.detalle}
                 </span>
-                <span>
-                  <span className="text-texto">{verificacion.titulo}</span>
-                  <span className="block text-xs text-tenue">{verificacion.detalle}</span>
-                </span>
-              </li>
-            ))}
-          </ul>
-        </Panel>
+              </span>
+            </li>
+          ))}
+        </ul>
       </Seccion>
-
-      {resultado.sugerencia ? (
-        <Seccion etiqueta="Devolución" titulo="La única sugerencia concreta">
-          <Panel>
-            <p className="text-sm leading-relaxed">
-              <TextoRico texto={resultado.sugerencia} />
-            </p>
-          </Panel>
-        </Seccion>
-      ) : null}
 
       <Seccion
         etiqueta="Economía"

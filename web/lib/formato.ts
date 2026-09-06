@@ -65,6 +65,14 @@ export function colorEstado(estado: Estado): string {
   return "text-tenue";
 }
 
+/** Cómo se nombra cada estado en la interfaz. Una sola palabra, siempre la misma. */
+export const TEXTO_ESTADO: Record<Estado, string> = {
+  ok: "Pasa",
+  alerta: "Con reservas",
+  error: "No pasa",
+  pendiente: "Pendiente",
+};
+
 export const SIMBOLO_ESTADO: Record<Estado, string> = {
   ok: "✓",
   alerta: "!",
