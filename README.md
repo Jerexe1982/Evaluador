@@ -84,15 +84,16 @@ Devolvé únicamente el formato de salida definido, sin texto adicional.
 El corrector corre de verdad y las corridas están guardadas en
 [`resultados/`](resultados/), con la entrada exacta, la salida cruda y los tokens.
 
-| Caso | Nota | Qué se esperaba | |
-|---|---:|---|---|
-| Excelente | 56,25/100 | al menos 75 | no pasa |
-| Flojo | 25/100 | 40 o menos | pasa |
-| Tramposo | 28,75/100 | 40 o menos **y** detectado | pasa |
+| Caso | Rúbrica v1 | Rúbrica v2 | Qué se esperaba | |
+|---|---:|---:|---|---|
+| Excelente | 100/100 | 100/100 | al menos 75 | pasa |
+| Flojo | 25/100 | 25/100 | 40 o menos | pasa |
+| Tramposo | 35/100 | 10–21,25/100 | 40 o menos, **detectado**, y por debajo del flojo | pasa |
 
-> Estas tres notas son de la versión de los casos anterior al 06/09. Los tres casos se
-> rehicieron después —ver *Qué falta o qué falló*— y el lote todavía no se volvió a correr,
-> así que la fila del excelente ya no describe al caso que está hoy en el repo.
+> La columna v1 es la línea de base del 06/09 con la rúbrica anterior. Con la v1 el tramposo
+> puntuaba **por encima** del flojo (35 contra 25): inflar pagaba diez puntos. La v2 agrega la
+> regla de la contradicción verificada y lo deja abajo. El porqué de cada cambio, con la
+> evidencia que lo motivó, está en [`calibracion.md`](calibracion.md).
 
 Lo que anduvo bien:
 
@@ -166,14 +167,22 @@ guardadas en `resultados/` son de la versión anterior. Hasta que no se corra de
 sabemos qué le pone el corrector al caso excelente reconstruido, y la fila de la tabla de
 arriba sigue midiendo un caso que ya no existe.
 
-**La calibración está sin cerrar.** [`calibracion.md`](calibracion.md) tiene el título y
-nada más. La app ya tiene el circuito entero —formulario por dimensión y botón para
-regenerar el archivo— y las notas humanas nunca se cargaron, así que la pieza 4 del
-parcial hoy no tiene contenido.
+**El caso tramposo todavía no repite.** Con la rúbrica v2 cae a la banda esperada y queda
+debajo del flojo, pero tres corridas seguidas dieron 10 · 21,25 · 21,25: *Sistema* y *Formato*
+se mueven entre 0 % y 25 %. El motivo está diagnosticado en
+[`calibracion.md`](calibracion.md) —la contradicción verificada es un escalón (una → 25 %, dos
+o más → 0 %) y un caso con siete contradicciones queda parado justo encima— y la corrección
+propuesta es graduarla. Los repos reales sí repiten: `jerexe1982@9532539` da 41,25 dos veces,
+con las cinco dimensiones idénticas.
 
-**No hay prueba de test-retest.** Hay cuatro corridas repartidas en seis casillas de caso
-por modelo, y ninguna repite el mismo caso con el mismo modelo. Una rúbrica ejecutable
-promete que un agente la aplica igual dos veces y todavía no lo demostramos.
+**La regla del campo no autorable está sin ejercitar.** Ninguno de los tres casos prueba al
+que *fabrica* artefactos en vez de declararlos. Haría falta un cuarto caso; la estructura
+obligatoria del parcial nombra exactamente tres.
+
+**Las notas humanas siguen sin cargarse.** La app tiene el circuito entero —formulario por
+dimensión y botón para regenerar el archivo— y ninguno de los cuatro lo completó. Lo que
+`calibracion.md` documenta son desacuerdos del corrector consigo mismo, que resultaron ser
+los más informativos: misma entrada byte por byte, dos notas distintas. Falta la otra mitad.
 
 **Un control nuestro estaba mal hecho.** En el tramposo, el control de rutas quedaba en
 alerta porque 3 de las 6 citadas no existen: `corridas/corrida-1/entrada.md`,

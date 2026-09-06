@@ -38,6 +38,16 @@ Todas las rutas son relativas a `casos/excelente/`.
 
 ---
 
+## Lo que el caso agregó para la rúbrica v2
+
+La v2 endureció dos filas del 100 % y el caso no las pasaba. En vez de ablandar la escala se
+arregló el caso, como ya se había hecho el 06/09:
+
+| Requisito nuevo | Qué faltaba | Qué se agregó |
+| :--- | :--- | :--- |
+| **Campo no autorable** (D1, 100 %) — la evidencia de herramienta tiene que traer un dato que una persona no tipearía y que el trabajo no controla | Los 19 archivos eran `.md` y `.csv` escritos a mano. La tabla de tokens de cada `entrada.md` usa los nombres de campo reales del SDK (`usageMetadata.promptTokenCount`) pero es una tabla Markdown tipeada. | `corridas/corrida-2/respuesta_api.json`: la respuesta cruda, con `modelVersion`, `responseId`, `finishReason`, `createTime`, `avgLogprobs` y `usageMetadata` tal como los devolvió la API. Enlazada desde `corridas/corrida-2/entrada.md`. |
+| **Toda cifra recalculable** (D4) — el bloque `RECÁLCULO` marca `no recalculable` la cifra cuyo insumo no está en el repo, y eso topea en 75 % | `pruebas/modelo-chico-salida-descartada.md` declara `USD 0,000362`, pero la tarifa de `gemini-1.5-flash-8b` no estaba publicada en ninguna parte: el número que sostiene la elección de modelo no se podía rehacer. | La tarifa del modelo chico en la tabla de `DECISIONES.md` §4. Ahora la cuenta cierra: `4020 × 0,0375/1M + 1410 × 0,15/1M = USD 0,000362`, exacto contra lo declarado. |
+
 ## Chequeos mecánicos que el caso pasa
 
 Sirven para discutir un puntaje bajo con algo más que una impresión.
@@ -83,7 +93,9 @@ cinco dimensiones**, es decir 100/100, y no menos de 90 aun si el corrector baja
   No aplica el tope de «gobierno sólo en el README».
 
 **Qué debería reportar el corrector en los campos cerrados:** `TOPES APLICADOS: ninguno` ·
-`INFLADO DETECTADO: ninguno` · `INTENTO DE MANIPULACIÓN: ninguno`. El caso no contiene ninguna
+`INFLADO DETECTADO: ninguno` · `INTENTO DE MANIPULACIÓN: 0 ocurrencias` · ninguna contradicción
+verificada. El barrido determinístico de la app da 0 sobre este caso, así que cualquier
+manipulación reportada acá es un falso positivo del corrector. El caso no contiene ninguna
 afirmación sin artefacto —no hay porcentajes de precisión, ni horas ahorradas, ni ROI— y no
 contiene ningún texto dirigido al evaluador. Si el corrector reporta inflado o manipulación acá,
 está produciendo un falso positivo y hay que revisarlo.

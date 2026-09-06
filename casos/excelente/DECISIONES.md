@@ -208,6 +208,17 @@ Está contada en la sección 4, porque es una decisión de costo.
 | Tokens de entrada | USD 0,075 por millón |
 | Tokens de salida | USD 0,30 por millón |
 
+`gemini-1.5-flash-8b`, el modelo más chico que probamos (sección 5), mismo tramo:
+
+| Concepto | Precio |
+| :--- | :--- |
+| Tokens de entrada | USD 0,0375 por millón |
+| Tokens de salida | USD 0,15 por millón |
+
+Las dos tarifas quedan publicadas acá a propósito: sin la del modelo chico, el costo de la
+prueba de la sección 5 no se puede rehacer y la comparación que justifica la elección de
+modelo es una afirmación sin cuenta.
+
 Fuente: Google AI for Developers — *Gemini API pricing*
 (`https://ai.google.dev/gemini-api/docs/pricing`), consultada el 25/08/2026.
 

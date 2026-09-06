@@ -19,6 +19,23 @@ export type ArchivoCaso = {
   bytes: number;
 };
 
+/** Los seis canales de texto dirigido al evaluador que barre `inyecciones.ts`. */
+export type CanalInyeccion =
+  | "texto-abierto"
+  | "comentario-html"
+  | "falsa-autoridad"
+  | "pedido-de-piso"
+  | "autoevaluacion"
+  | "simpatia";
+
+/** Una ocurrencia encontrada por el barrido de la app, no por el modelo. */
+export type Inyeccion = {
+  ruta: string;
+  linea: number;
+  canal: CanalInyeccion;
+  cita: string;
+};
+
 /**
  * De dónde salió un trabajo: de `casos/` —los tres casos de prueba del grupo— o de un
  * repositorio de GitHub clonado a pedido para corregirlo.
@@ -125,6 +142,22 @@ export type FilaResultado = {
   explicacion?: ExplicacionDimension | null;
 };
 
+/**
+ * El bloque CONTEO de la capa 6.3: los hechos contables que el contrato exige escribir
+ * antes de elegir un nivel. Lo que no vino en la salida queda en null.
+ */
+export type Conteo = {
+  corridas: number | null;
+  corridasConEntrada: number | null;
+  corridasConFecha: number | null;
+  piezasContrato: number | null;
+  it: number | null;
+  ctlA: boolean | null;
+  ctlB: boolean | null;
+  contradicciones: number | null;
+  manipulaciones: number | null;
+};
+
 /** Las líneas fijas con las que el contrato cierra la salida. */
 export type CamposCerrados = {
   topes: string | null;
@@ -176,6 +209,10 @@ export type Resultado = {
   veredicto?: string | null;
   /** El paso 1 del protocolo, escrito por el corrector. Contrato v2 en adelante. */
   inventario?: ElementoInventario[];
+  /** Los hechos contables del bloque CONTEO. Contrato v3 en adelante. */
+  conteo?: Conteo | null;
+  /** El barrido de inyecciones de la app, para contrastar con lo que reportó el modelo. */
+  inyecciones?: Inyeccion[];
   razonamiento: string | null;
   salidaCruda: string;
   uso: UsoModelo;

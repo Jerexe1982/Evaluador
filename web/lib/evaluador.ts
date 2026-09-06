@@ -5,6 +5,7 @@ import { leerSystemPromptAgente } from "./repo";
 import { buscarModelo, ESFUERZO_RAZONAMIENTO, MODELO_POR_DEFECTO } from "./modelos";
 import {
   parsearCamposCerrados,
+  parsearConteo,
   parsearFilas,
   parsearInventario,
   parsearNotaFinal,
@@ -26,7 +27,7 @@ export { haySesionChatGPT } from "./credenciales";
 export async function evaluarCaso(slug: string, modeloId: string): Promise<Resultado> {
   const modelo = buscarModelo(modeloId) ?? buscarModelo(MODELO_POR_DEFECTO)!;
   const systemPrompt = leerSystemPromptAgente();
-  const { userPrompt, archivos, trabajo } = await armarUserPrompt(slug);
+  const { userPrompt, archivos, inyecciones, trabajo } = await armarUserPrompt(slug);
   const credenciales = await obtenerCredenciales();
 
   const inicio = Date.now();
@@ -49,6 +50,7 @@ export async function evaluarCaso(slug: string, modeloId: string): Promise<Resul
   const camposCerrados = parsearCamposCerrados(salidaCruda);
   const veredicto = parsearVeredicto(salidaCruda);
   const inventario = parsearInventario(salidaCruda);
+  const conteo = parsearConteo(salidaCruda);
 
   const fecha = new Date();
 
@@ -67,6 +69,8 @@ export async function evaluarCaso(slug: string, modeloId: string): Promise<Resul
     camposCerrados,
     veredicto,
     inventario,
+    conteo,
+    inyecciones,
     razonamiento: respuesta.razonamiento,
     salidaCruda,
     uso: {
@@ -83,6 +87,8 @@ export async function evaluarCaso(slug: string, modeloId: string): Promise<Resul
       notaCalculada,
       salidaCruda,
       sugerencia,
+      conteo,
+      inyecciones,
     ),
   };
 }

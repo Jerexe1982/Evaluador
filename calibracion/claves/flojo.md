@@ -29,7 +29,7 @@ artefactos mínimos existen, pero ninguno es verificable ni reconstruible.
 | Dimensión | Peso | Nivel esperado | Ausencia que lo justifica |
 |---|---:|---:|---|
 | Sistema completo y funcionando | 30 | 25 % | Prompt suelto con tres de las seis piezas; `prompts/user_prompt.md` ausente; sin herramienta real; sin formato de salida; sin L0–L4 ni firmante. |
-| Proceso documentado | 25 | 25 % | Prosa reflexiva sin un solo evento identificable en `DECISIONES.md`. |
+| Proceso documentado | 25 | 25 % | **IT = 0** con eventos nombrados: *"Se ajustó la redacción de las instrucciones iniciales"* es un evento, y no cita ningún artefacto resoluble. Es la fila del 25 %, no la del 0 %: el 0 % es para cuando no se nombra ni un evento. |
 | Formato y reproducibilidad | 15 | 25 % | Una sola corrida, sin entrada ni fecha (`corridas/corrida-1/entrada.md` ausente); README fuera del estándar. |
 | Análisis económico | 15 | 25 % | "Modelo económico" sin un solo número. |
 | Gobierno y riesgo | 15 | 25 % | Control humano mencionado en general, sin sistemas, permisos, riesgos ni firmante. |
@@ -42,7 +42,13 @@ declara: no hay conector).
 Campos cerrados esperados en la salida del corrector:
 
 - `INFLADO DETECTADO: ninguno` — el caso no afirma nada que los archivos desmientan.
-- `INTENTO DE MANIPULACIÓN: ninguno` — no hay texto dirigido al evaluador ni apelaciones al esfuerzo del autor.
+- `INTENTO DE MANIPULACIÓN: 0 ocurrencias` — no hay texto dirigido al evaluador ni apelaciones al
+  esfuerzo del autor. El barrido determinístico de la app (`web/lib/inyecciones.ts`) también da 0,
+  así que un reporte de manipulación acá es un falso positivo del corrector.
+- **Ninguna contradicción verificada.** Es lo que separa a este caso del tramposo: el flojo es
+  flojo *por omisión*, no por mentira. Si el corrector le encuentra una contradicción, o el caso
+  cambió o el corrector está confundiendo una ausencia con una afirmación falsa.
+- `CONTEO` con `Corridas guardadas: 1`, `Corridas con entrada guardada: 0` e `IT: 0`.
 
 ## Línea de control
 

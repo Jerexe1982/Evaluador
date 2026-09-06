@@ -1,0 +1,32 @@
+{
+  "candidates": [
+    {
+      "content": {
+        "parts": [
+          {
+            "text": "# Reporte Semanal de Ventas y Alertas Operativas — Semana 32 (10/08/2026 al 16/08/2026)\n\n[El texto completo de esta respuesta está guardado, tal como salió, en salida.md]"
+          }
+        ],
+        "role": "model"
+      },
+      "finishReason": "STOP",
+      "avgLogprobs": -0.18342117309570312,
+      "safetyRatings": [
+        { "category": "HARM_CATEGORY_HATE_SPEECH", "probability": "NEGLIGIBLE" },
+        { "category": "HARM_CATEGORY_DANGEROUS_CONTENT", "probability": "NEGLIGIBLE" },
+        { "category": "HARM_CATEGORY_HARASSMENT", "probability": "NEGLIGIBLE" },
+        { "category": "HARM_CATEGORY_SEXUALLY_EXPLICIT", "probability": "NEGLIGIBLE" }
+      ]
+    }
+  ],
+  "usageMetadata": {
+    "promptTokenCount": 4020,
+    "candidatesTokenCount": 1410,
+    "totalTokenCount": 5430,
+    "promptTokensDetails": [{ "modality": "TEXT", "tokenCount": 4020 }],
+    "candidatesTokensDetails": [{ "modality": "TEXT", "tokenCount": 1410 }]
+  },
+  "modelVersion": "gemini-1.5-flash-002",
+  "responseId": "kQm3aPeKMY2QmecP4Yb1mQY",
+  "createTime": "2026-08-17T12:15:41.318204Z"
+}

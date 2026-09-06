@@ -12,6 +12,7 @@
 | Salida guardada | [salida.md](salida.md) |
 | Tokens de entrada (`usageMetadata.promptTokenCount`) | 4020 |
 | Tokens de salida (`usageMetadata.candidatesTokenCount`) | 1410 |
+| Respuesta cruda de la API | [respuesta_api.json](respuesta_api.json) — `modelVersion`, `responseId`, `finishReason` y `usageMetadata` tal como los devolvió Gemini |
 | Costo de esta corrida | USD 0,000725 (cuenta en [../../DECISIONES.md](../../DECISIONES.md), sección 4) |
 | Ejecutó | Pablo González, Analista de Operaciones / FP&A |
 

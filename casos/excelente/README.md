@@ -30,8 +30,10 @@ casos/excelente/
 │   └── piloto_semana_30_export_crudo.csv   el mismo dato sin normalizar, que rompió la v1
 ├── corridas/                        las tres ejecuciones, con fecha, entrada y salida
 │   ├── corrida-1/{entrada.md, salida.md}
-│   ├── corrida-2/{entrada.md, salida.md}
+│   ├── corrida-2/{entrada.md, salida.md, respuesta_api.json}
 │   └── corrida-3/{entrada.md, salida.md}
+│       respuesta_api.json es la respuesta cruda de la API, con modelVersion,
+│       responseId, finishReason y usageMetadata tal como los devolvió Gemini
 └── pruebas/                         salidas defectuosas guardadas (no son corridas del sistema)
     ├── v1-salida-descartada.md
     ├── v2-salida-descartada.md

@@ -3,9 +3,11 @@ import { existeArchivoCaso, existeRutaTrabajo as existeRutaCaso } from "./repo";
 import type {
   CamposCerrados,
   ClaveDimension,
+  Conteo,
   ElementoInventario,
   ExplicacionDimension,
   FilaResultado,
+  Inyeccion,
   ItemEvidencia,
   TipoEvidencia,
   Verificacion,
@@ -26,13 +28,21 @@ function aNumero(texto: string): number | null {
   return Number.isFinite(numero) ? numero : null;
 }
 
+/**
+ * Parte una fila de tabla Markdown en celdas. El pipe escapado (`\|`) es contenido, no
+ * separador: tratarlo como separador corría todas las columnas un lugar y se perdía la
+ * justificación de la dimensión. Pasó de verdad, en la fila `economico` de
+ * `resultados/tramposo__2026-09-06T22-53-07-820Z.json`.
+ */
 function celdas(linea: string): string[] {
+  const CENTINELA = "\u0000";
   return linea
     .trim()
+    .replace(/\\\|/g, CENTINELA)
     .replace(/^\|/, "")
     .replace(/\|$/, "")
     .split("|")
-    .map((c) => c.trim());
+    .map((c) => c.split(CENTINELA).join("|").trim());
 }
 
 /** Rutas de archivo mencionadas en un texto libre (con o sin backticks). */
@@ -125,10 +135,13 @@ export function parsearCamposCerrados(salida: string): CamposCerrados {
 
 /** true cuando el campo cerrado dice explícitamente que no hay nada que reportar. */
 export function campoVacio(valor: string | null): boolean {
+  const limpio = (valor ?? "").replace(/[*`[\]]/g, "").trim();
   return (
     valor === null ||
-    valor === "" ||
-    /^(ninguno|ninguna|nada|no|-|—)\b/i.test(valor.replace(/[*`[\]]/g, "").trim())
+    limpio === "" ||
+    /^(ninguno|ninguna|nada|no|-|—)\b/i.test(limpio) ||
+    // El contrato v3 pide contar: "0 ocurrencias" es la forma de decir "ninguna".
+    /^0\s+(ocurrencias?|contradicciones?)\b/i.test(limpio)
   );
 }
 
@@ -141,12 +154,32 @@ export function sumarPuntajes(filas: FilaResultado[]): number {
  * Controles que la app corre sobre la salida del modelo. No cambian el puntaje:
  * hacen auditable la corrección del corrector.
  */
+/**
+ * El nivel de *Proceso documentado* que la rúbrica manda para un IT dado. La tabla del
+ * contrato indexa el nivel por el conteo, así que el mapeo se puede rehacer con código:
+ * si el corrector puso otro, o contó mal o eligió el nivel antes de contar.
+ */
+function nivelPorIt(it: number): number[] {
+  if (it === 0) return [0, 25];
+  if (it === 1) return [50];
+  return [75, 100];
+}
+
+/** El nivel de *Gobierno y riesgo* que habilitan los dos controles. */
+function nivelPorControles(ctlA: boolean, ctlB: boolean): number {
+  if (ctlA && ctlB) return 100;
+  if (ctlA) return 75;
+  return 50;
+}
+
 export function verificar(
   filas: FilaResultado[],
   notaDeclarada: number | null,
   notaCalculada: number,
   salida: string,
   sugerencia: string,
+  conteo?: Conteo | null,
+  inyecciones?: Inyeccion[],
 ): Verificacion[] {
   const verificaciones: Verificacion[] = [];
 
@@ -350,6 +383,98 @@ export function verificar(
       : "Falta la línea UNA SUGERENCIA CONCRETA que exige el contrato.",
   });
 
+  // --- Controles del contrato v3: el conteo manda sobre el nivel ---------------------
+
+  const nivelDe = (clave: ClaveDimension): number | null =>
+    filas.find((f) => f.clave === clave)?.nivel ?? null;
+
+  verificaciones.push({
+    clave: "conteo",
+    titulo: "El bloque CONTEO viene completo",
+    estado: !conteo ? "error" : "ok",
+    detalle: !conteo
+      ? "La salida no trae el bloque CONTEO que el contrato pide antes de puntuar."
+      : "Están los hechos contables con los que se leen los niveles.",
+  });
+
+  if (conteo) {
+    const desacuerdos: string[] = [];
+
+    const proceso = nivelDe("proceso");
+    if (conteo.it !== null && proceso !== null) {
+      const admitidos = nivelPorIt(conteo.it);
+      if (!admitidos.includes(proceso)) {
+        desacuerdos.push(
+          `Proceso documentado: IT = ${conteo.it} admite ${admitidos.join(" o ")} %, y puso ${proceso} %.`,
+        );
+      }
+    }
+
+    const gobierno = nivelDe("gobierno");
+    if (conteo.ctlA !== null && conteo.ctlB !== null && gobierno !== null) {
+      const techo = nivelPorControles(conteo.ctlA, conteo.ctlB);
+      if (gobierno > techo) {
+        desacuerdos.push(
+          `Gobierno y riesgo: CTL-A ${conteo.ctlA ? "presente" : "ausente"} y CTL-B ${
+            conteo.ctlB ? "presente" : "ausente"
+          } habilitan hasta ${techo} %, y puso ${gobierno} %.`,
+        );
+      }
+    }
+
+    const formato = nivelDe("formato");
+    if (conteo.corridas !== null && formato !== null && conteo.corridas < 3 && formato > 50) {
+      desacuerdos.push(
+        `Formato y reproducibilidad: ${conteo.corridas} corridas guardadas topean en 50 %, y puso ${formato} %.`,
+      );
+    }
+
+    if (conteo.contradicciones !== null && conteo.contradicciones > 0) {
+      const techo = conteo.contradicciones >= 2 ? 0 : 25;
+      const altas = filas.filter((f) => (f.nivel ?? 0) > techo);
+      if (altas.length === filas.length && filas.length > 0) {
+        desacuerdos.push(
+          `Reporta ${conteo.contradicciones} contradicción(es) verificada(s) y ninguna dimensión bajó a ${techo} %.`,
+        );
+      }
+    }
+
+    verificaciones.push({
+      clave: "nivel-conteo",
+      titulo: "Ningún nivel contradice el conteo",
+      estado: desacuerdos.length === 0 ? "ok" : "error",
+      detalle:
+        desacuerdos.length === 0
+          ? "Los niveles se leen de los conteos que el propio corrector escribió."
+          : desacuerdos.join(" "),
+    });
+  }
+
+  if (inyecciones !== undefined) {
+    const reportadas = conteo?.manipulaciones ?? null;
+    const barridas = inyecciones.length;
+    const rutasBarridas = [...new Set(inyecciones.map((i) => i.ruta))];
+    const sinCitar = rutasBarridas.filter((r) => !salida.includes(r));
+    verificaciones.push({
+      clave: "barrido",
+      titulo: "Reporta todas las inyecciones que encontró la app",
+      estado:
+        barridas === 0
+          ? "ok"
+          : sinCitar.length > 0 || (reportadas !== null && reportadas < barridas)
+            ? "alerta"
+            : "ok",
+      detalle:
+        barridas === 0
+          ? "El barrido determinístico no encontró texto dirigido al evaluador."
+          : sinCitar.length > 0
+            ? `El barrido encontró ${barridas} ocurrencia(s) en ${rutasBarridas.length} archivo(s); la salida no menciona ${sinCitar.join(", ")}.`
+            : reportadas !== null && reportadas < barridas
+              ? `El barrido encontró ${barridas} y el corrector declaró ${reportadas}.`
+              : `Las ${barridas} ocurrencia(s) del barrido aparecen en la salida.`,
+    });
+  }
+
   return verificaciones;
 }
 
@@ -503,6 +628,51 @@ export function parsearFichas(
   }
 
   return fichas;
+}
+
+/**
+ * El bloque CONTEO de la capa 6.3. Son los hechos contables que el contrato exige
+ * escribir *antes* de elegir un nivel: si están, se puede verificar que el nivel no los
+ * contradiga. Lo que no vino queda en null y no se inventa.
+ */
+export function parsearConteo(salida: string): Conteo | null {
+  const bloque = salida.split(/^\s*\**\s*CONTEO\s*\**\s*:?\s*$/im)[1];
+  if (!bloque) return null;
+
+  // El bloque termina donde arranca el siguiente encabezado del formato.
+  const cuerpo = bloque.split(
+    /^\s*\**\s*(RECÁLCULO|RECALCULO|FICHA|TOPES APLICADOS|INVENTARIO)\b/im,
+  )[0];
+
+  const numero = (patron: RegExp): number | null => {
+    const match = cuerpo.match(patron);
+    if (!match) return null;
+    const crudo = (match[1] ?? "").replace(/[^\d]/g, "");
+    return crudo === "" ? null : Number.parseInt(crudo, 10);
+  };
+
+  const booleano = (patron: RegExp): boolean | null => {
+    const match = cuerpo.match(patron);
+    if (!match) return null;
+    const valor = normalizar(match[1] ?? "");
+    if (/^(no|ausente|ninguno|ninguna)\b/.test(valor)) return false;
+    if (valor === "") return null;
+    return true;
+  };
+
+  return {
+    corridas: numero(/corridas\s+guardadas\s*:?\s*\**\s*(\d+)/i),
+    corridasConEntrada: numero(/corridas\s+con\s+entrada[^:]*:?\s*\**\s*(\d+)/i),
+    corridasConFecha: numero(/corridas\s+con\s+fecha[^:]*:?\s*\**\s*(\d+)/i),
+    piezasContrato: numero(/piezas\s+del\s+contrato[^:]*:\s*\**\s*(\d+)/i),
+    it: numero(/\bIT\b[^:]*:\s*\**\s*(\d+)/i),
+    ctlA: booleano(/CTL-?A[^:]*:\s*\**\s*(.+)/i),
+    ctlB: booleano(/CTL-?B[^:]*:\s*\**\s*(.+)/i),
+    contradicciones: numero(/contradicciones\s+verificadas\s*:?\s*\**\s*(\d+)/i),
+    manipulaciones: numero(
+      /ocurrencias\s+de\s+texto\s+dirigido\s+al\s+evaluador\s*:?\s*\**\s*(\d+)/i,
+    ),
+  };
 }
 
 /** La frase con la que el corrector resume de dónde sale la nota. */
