@@ -90,12 +90,22 @@ export function pruebasDelCaso(
   const sinRuta = resultado.filas.filter(
     (f) => (f.puntaje ?? 0) > 0 && f.rutasCitadas.length === 0,
   );
-  // Una ruta que no existe sólo es invención si además sostiene puntaje y la evidencia
-  // no la nombra justamente por faltar: decir "`DECISIONES.md` — ausente" o "declarado
-  // sin artefacto" es lo que el contrato pide hacer, no un archivo inventado.
+  // Una ruta que no existe sólo es invención si sostiene puntaje y no está citada
+  // justamente por faltar. Cuando la corrida trae la ficha, el propio corrector marca
+  // cada ítem como CONFIRMA o FALTA y no hay nada que adivinar; en las corridas viejas
+  // se cae a buscar en el texto de la evidencia las palabras con las que se nombra una
+  // ausencia, que es lo que el contrato pide escribir.
   const inventadas = resultado.filas
-    .filter((f) => (f.puntaje ?? 0) > 0 && !SENAL_DE_AUSENCIA.test(f.evidencia))
-    .flatMap((f) => f.rutasCitadas.filter((r) => !f.rutasVerificadas.includes(r)));
+    .filter((f) => (f.puntaje ?? 0) > 0)
+    .flatMap((f) =>
+      f.explicacion
+        ? f.explicacion.items
+            .filter((i) => i.tipo !== "falta" && i.ruta !== null && i.existe === false)
+            .map((i) => i.ruta!)
+        : SENAL_DE_AUSENCIA.test(f.evidencia)
+          ? []
+          : f.rutasCitadas.filter((r) => !f.rutasVerificadas.includes(r)),
+    );
   pruebas.push({
     clave: "evidencia",
     titulo: "Cada punto que dio está anclado a un archivo real",

@@ -99,6 +99,18 @@ export function generarCalibracionMd(): string {
           `- **${desacuerdo.nombre}** — el agente puso ${desacuerdo.nivelAgente}% y el grupo ${desacuerdo.nivelHumano}%. ` +
             `Justificación del agente: ${fila?.justificacion || "—"}`,
         );
+        // Cuando la corrida trae la ficha, el desacuerdo se documenta con lo que el
+        // agente dice que faltó: es sobre eso que hay que ponerse de acuerdo, no sobre
+        // el número.
+        const explicacion = fila?.explicacion;
+        if (explicacion?.porQueNo) {
+          lineas.push(
+            `  - Por qué no ${explicacion.nivelDescartado ?? "el nivel siguiente"}%: ${explicacion.porQueNo}`,
+          );
+        }
+        if (explicacion?.tope) {
+          lineas.push(`  - Tope aplicado: ${explicacion.tope}`);
+        }
       }
     }
     if (calibracion.humano.comentario) {
