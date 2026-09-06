@@ -107,6 +107,16 @@ Lo que anduvo bien:
 - **La citación con ruta.** En las cuatro corridas el corrector citó archivo y fragmento
   textual. En el excelente y el flojo, todas las rutas citadas existían.
 
+**La explicación de cada nivel.** El contrato de salida dejó de ser sólo la tabla. Ahora el
+corrector escribe el inventario de los cuatro elementos obligatorios antes de puntuar, y de
+cada dimensión devuelve una ficha: la evidencia marcada una por una como `CONFIRMA`, `FALTA`
+o `CONTRADICE` con su ruta y su cita, el nivel que salió de esa evidencia, el tope de la
+rúbrica que se haya activado, el nivel final, qué exigencia concreta del nivel de arriba no
+se cumplió y qué artefacto la destrabaría. La app muestra esa cadena entera y enlaza cada
+cita al archivo, resaltada en su contexto: si la cita no aparece en el archivo, lo dice. Las
+corridas guardadas en [`resultados/`](resultados/) son anteriores a este contrato, así que
+todavía muestran la tabla sin la ficha; hay que volver a correr el lote.
+
 Para usarlo: `cd web && npm install && npm run dev`, y entrar con la sesión de ChatGPT
 desde la app. Sin sesión igual se ven los casos y las corridas guardadas. A mano también
 funciona: se pega [`agente/system_prompt.md`](agente/system_prompt.md) entero en un chat
@@ -165,11 +175,14 @@ parcial hoy no tiene contenido.
 por modelo, y ninguna repite el mismo caso con el mismo modelo. Una rúbrica ejecutable
 promete que un agente la aplica igual dos veces y todavía no lo demostramos.
 
-**Un control nuestro está mal hecho.** En el tramposo, el control de rutas queda en alerta
-porque 3 de las 6 citadas no existen: `corridas/corrida-1/entrada.md`,
-`corridas/corrida-2/entrada.md` y `prompts/user_prompt.md`. Pero el corrector hizo lo
+**Un control nuestro estaba mal hecho.** En el tramposo, el control de rutas quedaba en
+alerta porque 3 de las 6 citadas no existen: `corridas/corrida-1/entrada.md`,
+`corridas/corrida-2/entrada.md` y `prompts/user_prompt.md`. Pero el corrector hacía lo
 correcto: la rúbrica le pide que, cuando la evidencia es una ausencia, cite la ruta
-esperada. El que no distingue una cita de una ausencia es nuestro control, no él.
+esperada. El que no distinguía una cita de una ausencia era nuestro control, no él. Con la
+ficha eso dejó de ser adivinanza: el corrector marca cada ítem como `CONFIRMA` o `FALTA`, y
+el control sólo exige que existan las rutas con las que afirma algo. Falta volver a correr
+el lote para verlo sobre los tres casos.
 
 **El tramposo puntúa por encima del flojo** (28,75 contra 25). Es correcto según los topes
 de la rúbrica —el tramposo llega a 50 % en Gobierno porque describe permisos y riesgos,
