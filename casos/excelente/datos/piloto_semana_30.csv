@@ -1,0 +1,9 @@
+ID_Transaccion,Fecha,Cliente,Vendedor,Categoria,Producto,Unidades,Precio_Lista,Precio_Venta_Real,Costo_Unitario,Precio_Venta_Total,Costo_Total,Descuento_Porcentaje,Margen_Bruto_Porcentaje
+TRX-0991,2026-07-27,Sanatorio San José,Juan Pérez,Químicos de Limpieza,Desinfectante Amonio 5L,30,2500.00,2250.00,1500.00,67500.00,45000.00,10.00,33.33
+TRX-0992,2026-07-28,Hotel Central GBA,Carlos Gómez,Accesorios y Mopas,Mopa Microfibra Profesional,20,1800.00,1620.00,1100.00,32400.00,22000.00,10.00,32.10
+TRX-0993,2026-07-28,LavaSport S.A.,Juan Pérez,Químicos de Limpieza,Detergente Industrial 20L,25,6500.00,4680.00,4100.00,117000.00,102500.00,28.00,12.39
+TRX-0994,2026-07-29,Supermercado Uno,María Rodríguez,Papel e Higiene,Papel Higiénico Jumbopack,40,5100.00,4590.00,3100.00,183600.00,124000.00,10.00,32.46
+TRX-0995,2026-07-30,Gimnasio SportLife,Ana Martínez,Desinfectantes/Sanitizantes,Aerosol Desinfectante 400ml,60,850.00,765.00,480.00,45900.00,28800.00,10.00,37.25
+TRX-0996,2026-07-30,Colegio Modelo,Carlos Gómez,Químicos de Limpieza,Jabón Líquido Manos 5L,15,2900.00,2610.00,1750.00,39150.00,26250.00,10.00,32.95
+TRX-0997,2026-07-31,Eventos GBA,Ana Martínez,Papel e Higiene,Toalla Intercalada 2500f,12,4200.00,3780.00,2800.00,45360.00,33600.00,10.00,25.93
+TRX-0998,2026-08-01,Consorcio Avellaneda,María Rodríguez,Accesorios y Mopas,Carro Prensa Mopa 36L,3,32000.00,30400.00,,91200.00,,5.00,

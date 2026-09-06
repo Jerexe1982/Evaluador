@@ -1,48 +1,3 @@
-# Corrida 1 — Entrada
-
-| Campo | Valor |
-| :--- | :--- |
-| Fecha de ejecución | **2026-08-10 09:32 UTC-3** |
-| Semana procesada | Semana 31 (03/08/2026 al 09/08/2026) |
-| Modelo | `gemini-1.5-flash` |
-| Parámetros | `temperature=0.1`, `top_p=0.95`, `max_output_tokens=2048` |
-| System prompt | [../../prompts/system_prompt.md](../../prompts/system_prompt.md) (versión 3) |
-| Plantilla de user prompt | [../../prompts/user_prompt.md](../../prompts/user_prompt.md) |
-| Archivo de origen | [../../datos/ventas_semana_31.csv](../../datos/ventas_semana_31.csv) |
-| Salida guardada | [salida.md](salida.md) |
-| Tokens de entrada (`usageMetadata.promptTokenCount`) | 4520 |
-| Tokens de salida (`usageMetadata.candidatesTokenCount`) | 1480 |
-| Costo de esta corrida | USD 0,000783 (cuenta en [../../DECISIONES.md](../../DECISIONES.md), sección 4) |
-| Ejecutó | Pablo González, Analista de Operaciones / FP&A |
-
-El CSV pegado abajo es el contenido literal de `datos/ventas_semana_31.csv`. Para reproducir la corrida:
-enviar el system prompt enlazado arriba como mensaje de sistema y el bloque siguiente como
-mensaje de usuario, con esos parámetros.
-
----
-
-## User prompt enviado
-
-````text
-Semana a procesar: Semana 31 (03/08/2026 al 09/08/2026)
-Archivo de origen: datos/ventas_semana_31.csv
-Fecha de ejecución: 2026-08-10 09:32 UTC-3
-Quien ejecuta: Pablo González, Analista de Operaciones / FP&A
-
-Procesá las transacciones del CSV de abajo y devolvé el Reporte Semanal de Ventas y Alertas
-Operativas de esa semana, con las cinco secciones y las tablas exactas de tu system prompt.
-
-Recordatorios de esta corrida:
-- Umbrales: margen bruto mínimo 15,00 % · descuento máximo 20,00 %.
-- Objetivos de la tabla de KPI: margen bruto medio mínimo 20,00 % · descuento medio máximo 12,00 %.
-- Si alguna fila llega con campos obligatorios vacíos, excluila de los agregados, reportala en
-  la Sección 4 como HUECO DE DATOS y cerrá con la leyenda de reporte parcial. No estimes el
-  valor faltante.
-- La columna Estado sólo admite: Informativo, En Regla, Alerta.
-
-CSV de la semana (pegado tal cual desde el archivo de origen, con encabezado):
-
-```csv
 ID_Transaccion,Fecha,Cliente,Vendedor,Categoria,Producto,Unidades,Precio_Lista,Precio_Venta_Real,Costo_Unitario,Precio_Venta_Total,Costo_Total,Descuento_Porcentaje,Margen_Bruto_Porcentaje
 TRX-1001,2026-08-03,Sanatorio San José,Juan Pérez,Químicos de Limpieza,Desinfectante Amonio 5L,40,2500.00,2250.00,1500.00,90000.00,60000.00,10.00,33.33
 TRX-1002,2026-08-03,Restaurante El Faro,María Rodríguez,Papel e Higiene,Toalla Intercalada 2500f,15,4200.00,3990.00,2800.00,59850.00,42000.00,5.00,29.82
@@ -64,5 +19,3 @@ TRX-1017,2026-08-08,Laboratorios BioPharma,Ana Martínez,Desinfectantes/Sanitiza
 TRX-1018,2026-08-09,Empresa Limpieza Total,María Rodríguez,Accesorios y Mopas,Mopa Microfibra Profesional,50,1800.00,1440.00,1100.00,72000.00,55000.00,20.00,23.61
 TRX-1019,2026-08-09,Residencia San Martín,Carlos Gómez,Químicos de Limpieza,Jabón Líquido Manos 5L,15,2900.00,2610.00,1750.00,39150.00,26250.00,10.00,32.95
 TRX-1020,2026-08-09,Eventos GBA,Ana Martínez,Papel e Higiene,Toalla Intercalada 2500f,10,4200.00,3780.00,2800.00,37800.00,28000.00,10.00,25.93
-```
-````

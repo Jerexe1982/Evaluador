@@ -1,45 +1,45 @@
 # Reporte Semanal de Ventas y Alertas Operativas — Semana 31 (03/08/2026 al 09/08/2026)
 
 ## 1. Resumen Ejecutivo
-Durante la Semana 31 se registró una facturación total de **$ 1.770.770,00** a través de 20 transacciones comerciales, alcanzando un margen bruto medio del **25.85%**. Si bien el margen bruto consolidado se mantiene por encima del umbral mínimo corporativo del 20.0%, se detectaron **2 operaciones con desvíos críticos de margen y descuentos no autorizados**, ambas gestionadas por el vendedor Juan Pérez. Estas dos operaciones generaron un impacto negativo en la rentabilidad semanal acumulada.
+La semana cerró con una facturación de $ 1.870.770,00 sobre 20 transacciones y un margen bruto medio de 26,60 %, por encima del piso de referencia de 20,00 %. El descuento medio fue de 12,65 %, 0,65 puntos por encima del objetivo de 12,00 %. Dos transacciones quedaron fuera de regla, ambas de Juan Pérez: TRX-1004 y TRX-1016, que juntas concentran $ 426.000,00 de facturación y aportan $ 55.000,00 de ganancia bruta. Ninguna fila llegó incompleta, por lo que las 20 transacciones entraron en los agregados.
 
 ## 2. Métricas Clave (KPIs)
 | Métrica | Valor | Objetivo / Ref | Estado |
 | :--- | :--- | :--- | :--- |
-| Facturación Total | $ 1.770.770,00 | N/A | Normal |
-| Costo Total de Ventas | $ 1.313.100,00 | N/A | Informativo |
-| Margen Bruto Total ($) | $ 457.670,00 | N/A | Informativo |
-| Margen Bruto Medio (%) | 25.85 % | Mínimo 20.0 % | En Regla |
-| Descuento Medio (%) | 12.15 % | Máximo 12.0 % | Alerta Moderada |
-| Total Transacciones | 20 | N/A | Informativo |
+| Facturación Total | $ 1.870.770,00 | N/A | Informativo |
+| Costo Total de Ventas | $ 1.373.100,00 | N/A | Informativo |
+| Margen Bruto Total ($) | $ 497.670,00 | N/A | Informativo |
+| Margen Bruto Medio (%) | 26,60 % | Mínimo 20,00 % | En Regla |
+| Descuento Medio (%) | 12,65 % | Máximo 12,00 % | Alerta |
+| Total Transacciones Procesadas | 20 | N/A | Informativo |
+| Transacciones Excluidas por Dato Faltante | 0 | N/A | Informativo |
 
 ## 3. Análisis por Vendedor y Categoría
 
 ### Desglose por Vendedor
 | Vendedor | Operaciones | Facturación Total | Margen Medio % | Descuento Medio % |
 | :--- | :--- | :--- | :--- | :--- |
-| Juan Pérez | 5 | $ 712.920,00 | 19.34 % | 19.60 % |
-| María Rodríguez | 5 | $ 543.150,00 | 29.83 % | 11.00 % |
-| Carlos Gómez | 5 | $ 333.450,00 | 31.22 % | 10.00 % |
-| Ana Martínez | 5 | $ 181.250,00 | 32.89 % | 10.00 % |
+| Juan Pérez | 5 | $ 712.920,00 | 18,67 % | 19,60 % |
+| María Rodríguez | 5 | $ 543.150,00 | 31,00 % | 11,00 % |
+| Carlos Gómez | 5 | $ 333.450,00 | 30,50 % | 10,00 % |
+| Ana Martínez | 5 | $ 281.250,00 | 33,60 % | 10,00 % |
 
 ### Desglose por Categoría
 | Categoría | Facturación Total | Participación % | Margen Medio % |
 | :--- | :--- | :--- | :--- |
-| Papel e Higiene | $ 748.650,00 | 42.28 % | 23.61 % |
-| Químicos de Limpieza | $ 522.270,00 | 29.49 % | 27.53 % |
-| Desinfectantes/Sanitizantes | $ 343.350,00 | 19.39 % | 34.99 % |
-| Accesorios y Mopas | $ 156.500,00 | 8.84 % | 27.60 % |
+| Papel e Higiene | $ 748.650,00 | 40,02 % | 22,39 % |
+| Químicos de Limpieza | $ 522.270,00 | 27,92 % | 27,27 % |
+| Desinfectantes/Sanitizantes | $ 343.350,00 | 18,35 % | 34,54 % |
+| Accesorios y Mopas | $ 256.500,00 | 13,71 % | 26,90 % |
 
 ## 4. Alertas Comerciales y de Riesgo Operativo
 
-1. **Alerta 1 (TRX-1004):** LavaSport S.A. | Juan Pérez | Detergente Industrial 20L | Descuento: 28.0% | Margen: 12.39%  
-   - **Desvío Crítico:** El descuento aplicado (28.0%) supera el máximo autorizado del 20.0%. El margen bruto resultante (12.39%) incumple el piso obligatorio del 15.0%.
-2. **Alerta 2 (TRX-1016):** Distribuidora Sur | Juan Pérez | Papel Higiénico Jumbopack | Descuento: 30.0% | Margen: 13.17%  
-   - **Desvío Crítico:** Otorgamiento de un 30.0% de descuento en una venta por volumen de $ 285.600,00. El margen de la operación (13.17%) cayó por debajo del límite permitido.
+1. **Alerta 1 (TRX-1004):** LavaSport S.A. | Juan Pérez | Detergente Industrial 20L | Descuento: 28,00 % | Margen: 12,39 %
+   - **DESCUENTO NO AUTORIZADO Y DESVÍO DE MARGEN:** el descuento de 28,00 % supera el máximo de 20,00 % en 8,00 puntos, y el margen resultante de 12,39 % queda 2,61 puntos por debajo del piso de 15,00 %. Facturación $ 140.400,00, ganancia bruta $ 17.400,00.
+2. **Alerta 2 (TRX-1016):** Distribuidora Sur | Juan Pérez | Papel Higiénico Jumbopack | Descuento: 30,00 % | Margen: 13,17 %
+   - **DESCUENTO NO AUTORIZADO Y DESVÍO DE MARGEN:** el descuento de 30,00 % supera el máximo de 20,00 % en 10,00 puntos, y el margen resultante de 13,17 % queda 1,83 puntos por debajo del piso de 15,00 %. Facturación $ 285.600,00, ganancia bruta $ 37.600,00.
 
 ## 5. Acciones Recomendadas
-
-1. **Bloqueo Preventivo de Descuentos para Juan Pérez:** Suspender la facultad delegation de aplicar descuentos superiores al 10.0% a Juan Pérez sin autorización previa firmada por la Gerencia Comercial (L3).
-2. **Revisión de Cuenta Distribuidora Sur:** Auditar las condiciones comerciales del cliente Distribuidora Sur para evitar la fijación de precedentes de precio que erosionen el margen de la categoría Papel e Higiene.
-3. **Refuerzo de Control de Margen por Producto:** Ajustar en el ERP el bloqueo automático para ventas del producto Detergente Industrial 20L cuando el margen caiga por debajo del 15.0%.
+1. Definir con Juan Pérez el tope de descuento que puede aplicar sin autorización previa: sus cinco operaciones de la semana promedian 19,60 % de descuento, casi el doble que las de los otros tres vendedores (10,00 % a 11,00 %).
+2. Revisar la condición comercial de Distribuidora Sur antes del próximo pedido: el 30,00 % de TRX-1016 se aplicó sobre el producto de mayor volumen de la semana y fija un precedente de precio para Papel Higiénico Jumbopack.
+3. Comparar el precio de compra de Detergente Industrial 20L con el de la última orden a proveedor: con costo unitario de $ 4.100,00 sobre lista de $ 6.500,00, todo descuento mayor a 25,79 % deja la operación por debajo del piso de margen de 15,00 %.

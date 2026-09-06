@@ -1,25 +1,46 @@
-# CORRIDA 2 — Entrada Registrada
+# Corrida 2 — Entrada
 
-**Fecha de Ejecución:** 2026-08-17 09:15:22 UTC-3  
-**Modelo Utilizado:** `gemini-1.5-flash`  
-**Parámetros:** Temperature=0.1, Top-P=0.95  
-**Autor Ingesta:** Pablo González (Analista FP&A)  
-**ID Corrida:** `RUN-20260817-W32`  
+| Campo | Valor |
+| :--- | :--- |
+| Fecha de ejecución | **2026-08-17 09:15 UTC-3** |
+| Semana procesada | Semana 32 (10/08/2026 al 16/08/2026) |
+| Modelo | `gemini-1.5-flash` |
+| Parámetros | `temperature=0.1`, `top_p=0.95`, `max_output_tokens=2048` |
+| System prompt | [../../prompts/system_prompt.md](../../prompts/system_prompt.md) (versión 3) |
+| Plantilla de user prompt | [../../prompts/user_prompt.md](../../prompts/user_prompt.md) |
+| Archivo de origen | [../../datos/ventas_semana_32.csv](../../datos/ventas_semana_32.csv) |
+| Salida guardada | [salida.md](salida.md) |
+| Tokens de entrada (`usageMetadata.promptTokenCount`) | 4020 |
+| Tokens de salida (`usageMetadata.candidatesTokenCount`) | 1410 |
+| Costo de esta corrida | USD 0,000725 (cuenta en [../../DECISIONES.md](../../DECISIONES.md), sección 4) |
+| Ejecutó | Pablo González, Analista de Operaciones / FP&A |
+
+El CSV pegado abajo es el contenido literal de `datos/ventas_semana_32.csv`. Para reproducir la corrida:
+enviar el system prompt enlazado arriba como mensaje de sistema y el bloque siguiente como
+mensaje de usuario, con esos parámetros.
 
 ---
 
-### System Prompt Proporcionado:
-*(Ver versión completa en [`prompts/system_prompt.md`](file:///Users/catamarchesi/Desktop/UCEMA/TRABAJO%20GRUPAL%20IA/casos/excelente/prompts/system_prompt.md))*
+## User prompt enviado
 
----
+````text
+Semana a procesar: Semana 32 (10/08/2026 al 16/08/2026)
+Archivo de origen: datos/ventas_semana_32.csv
+Fecha de ejecución: 2026-08-17 09:15 UTC-3
+Quien ejecuta: Pablo González, Analista de Operaciones / FP&A
 
-### User Prompt e Ingesta Transaccional:
+Procesá las transacciones del CSV de abajo y devolvé el Reporte Semanal de Ventas y Alertas
+Operativas de esa semana, con las cinco secciones y las tablas exactas de tu system prompt.
 
-Estimado Agente Analista,
+Recordatorios de esta corrida:
+- Umbrales: margen bruto mínimo 15,00 % · descuento máximo 20,00 %.
+- Objetivos de la tabla de KPI: margen bruto medio mínimo 20,00 % · descuento medio máximo 12,00 %.
+- Si alguna fila llega con campos obligatorios vacíos, excluila de los agregados, reportala en
+  la Sección 4 como HUECO DE DATOS y cerrá con la leyenda de reporte parcial. No estimes el
+  valor faltante.
+- La columna Estado sólo admite: Informativo, En Regla, Alerta.
 
-Procesá la exportación transaccional adjunta correspondiente a las ventas de la **Semana 32 (10/08/2026 al 16/08/2026)**.
-
-Generá el **Reporte Semanal de Ventas y Alertas Operativas** respetando de forma estricta el contrato de salida Markdown de 5 secciones y los umbrales de control fijados en tu System Prompt (Margen Bruto mínimo: 15.0%, Descuento máximo: 20.0%).
+CSV de la semana (pegado tal cual desde el archivo de origen, con encabezado):
 
 ```csv
 ID_Transaccion,Fecha,Cliente,Vendedor,Categoria,Producto,Unidades,Precio_Lista,Precio_Venta_Real,Costo_Unitario,Precio_Venta_Total,Costo_Total,Descuento_Porcentaje,Margen_Bruto_Porcentaje
@@ -34,3 +55,4 @@ TRX-1028,2026-08-13,Consorcio Torres Belgrano,Ana Martínez,Accesorios y Mopas,M
 TRX-1029,2026-08-14,Fabrica Plásticos GBA,Juan Pérez,Químicos de Limpieza,Desengrasante Pesado 20L,20,8900.00,8010.00,5400.00,160200.00,108000.00,10.00,32.58
 TRX-1030,2026-08-14,Frigorífico La Pampa,María Rodríguez,Químicos de Limpieza,Detergente Industrial 20L,25,6500.00,4875.00,4100.00,121875.00,102500.00,25.00,15.90
 ```
+````
