@@ -190,6 +190,20 @@ export function leerArchivoTrabajo(id: string, relativa: string): string {
   return fs.readFileSync(destino, "utf8");
 }
 
+/**
+ * Existe la ruta, sea archivo o carpeta. El corrector cita carpetas cuando la evidencia
+ * es estructural —`prompts/`, `corridas/corrida-1/`— y esas citas también se verifican.
+ */
+export function existeRutaTrabajo(id: string, relativa: string): boolean {
+  const ubicacion = ubicarTrabajo(id);
+  if (!ubicacion) return false;
+  try {
+    return fs.existsSync(rutaSegura(ubicacion.dir, relativa.replace(/\/$/, "")));
+  } catch {
+    return false;
+  }
+}
+
 export function existeArchivoTrabajo(id: string, relativa: string): boolean {
   const ubicacion = ubicarTrabajo(id);
   if (!ubicacion) return false;

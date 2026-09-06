@@ -6,8 +6,10 @@ import { buscarModelo, ESFUERZO_RAZONAMIENTO, MODELO_POR_DEFECTO } from "./model
 import {
   parsearCamposCerrados,
   parsearFilas,
+  parsearInventario,
   parsearNotaFinal,
   parsearSugerencia,
+  parsearVeredicto,
   sumarPuntajes,
   verificar,
 } from "./parseo";
@@ -45,6 +47,8 @@ export async function evaluarCaso(slug: string, modeloId: string): Promise<Resul
   const notaCalculada = sumarPuntajes(filas);
   const sugerencia = parsearSugerencia(salidaCruda);
   const camposCerrados = parsearCamposCerrados(salidaCruda);
+  const veredicto = parsearVeredicto(salidaCruda);
+  const inventario = parsearInventario(salidaCruda);
 
   const fecha = new Date();
 
@@ -61,6 +65,8 @@ export async function evaluarCaso(slug: string, modeloId: string): Promise<Resul
     notaCalculada,
     sugerencia,
     camposCerrados,
+    veredicto,
+    inventario,
     razonamiento: respuesta.razonamiento,
     salidaCruda,
     uso: {

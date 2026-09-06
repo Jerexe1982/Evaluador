@@ -54,6 +54,55 @@ export type Trabajo = {
 /** Los tres casos de prueba son trabajos como cualquier otro. */
 export type Caso = Trabajo;
 
+/**
+ * Un ítem de evidencia de la ficha de una dimensión. Es la unidad mínima con la que el
+ * corrector sostiene —o desmiente— un nivel: qué archivo, qué dice, y qué prueba.
+ */
+export type TipoEvidencia = "confirma" | "falta" | "contradice";
+
+export type ItemEvidencia = {
+  tipo: TipoEvidencia;
+  /** Ruta relativa a la raíz del trabajo, o null si el corrector no citó ninguna. */
+  ruta: string | null;
+  /** Fragmento textual del archivo. Los ítems de ausencia no la traen: no hay qué citar. */
+  cita: string | null;
+  /** Qué exigencia cumple, qué falta o contra qué afirmación va. */
+  comentario: string;
+  /** Si la ruta existe en el trabajo. null cuando el ítem no cita ninguna. */
+  existe: boolean | null;
+};
+
+export type Confianza = "alta" | "media" | "baja";
+
+/**
+ * La cadena de decisión de una dimensión, tal como la escribe el corrector: qué encontró,
+ * qué nivel salió de esa evidencia, qué tope se activó, en qué nivel terminó, y qué
+ * artefacto concreto habría hecho falta para el nivel de arriba.
+ */
+export type ExplicacionDimension = {
+  clave: ClaveDimension;
+  items: ItemEvidencia[];
+  /** Nivel que sale de la tabla de la rúbrica, antes de mirar los topes. */
+  nivelPorEvidencia: number | null;
+  /** El tope que se activó, textual, o null si no se activó ninguno. */
+  tope: string | null;
+  /** Nivel después del tope. Tiene que ser el mismo de la tabla resumen. */
+  nivelFinal: number | null;
+  /** El nivel inmediato superior que el corrector descartó, si lo nombró. */
+  nivelDescartado: number | null;
+  porQueNo: string;
+  paraSubir: string;
+  confianza: Confianza | null;
+  motivoConfianza: string;
+};
+
+/** Uno de los cuatro elementos obligatorios, con lo que el corrector encontró de él. */
+export type ElementoInventario = {
+  ruta: string;
+  estado: "presente" | "vacio" | "ausente" | "desconocido";
+  detalle: string;
+};
+
 export type FilaResultado = {
   clave: ClaveDimension;
   nombre: string;
@@ -72,6 +121,8 @@ export type FilaResultado = {
   rutasCitadas: string[];
   /** Subconjunto de rutasCitadas que existe de verdad en el caso. */
   rutasVerificadas: string[];
+  /** La ficha de la dimensión. Las corridas anteriores al contrato v2 no la tienen. */
+  explicacion?: ExplicacionDimension | null;
 };
 
 /** Las líneas fijas con las que el contrato cierra la salida. */
@@ -121,6 +172,10 @@ export type Resultado = {
   sugerencia: string;
   /** Opcional: los resultados guardados antes de este campo no lo tienen. */
   camposCerrados?: CamposCerrados;
+  /** De dónde sale la nota, en una frase. Contrato v2 en adelante. */
+  veredicto?: string | null;
+  /** El paso 1 del protocolo, escrito por el corrector. Contrato v2 en adelante. */
+  inventario?: ElementoInventario[];
   razonamiento: string | null;
   salidaCruda: string;
   uso: UsoModelo;
