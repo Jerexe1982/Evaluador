@@ -2,6 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { BotonCorrer } from "@/components/BotonCorrer";
 import { FormularioCalibracion } from "@/components/FormularioCalibracion";
+import { ResumenCorreccion } from "@/components/explicabilidad";
 import { VisorArchivos, type ArchivoConTexto } from "@/components/VisorArchivos";
 import { Escala, Etiqueta, Nota, Panel, Seccion, Sello } from "@/components/ui";
 import {
@@ -20,6 +21,7 @@ import {
   fecha,
   puntos,
   SIMBOLO_ESTADO,
+  TEXTO_ESTADO,
   tokens,
 } from "@/lib/formato";
 import { esArchivoDeTexto, existeCaso, leerArchivoCaso, leerCaso } from "@/lib/repo";
@@ -28,22 +30,15 @@ import { listarResultados, ultimoResultadoCompleto } from "@/lib/resultados";
 
 export const dynamic = "force-dynamic";
 
-const TEXTO_ESTADO = {
-  ok: "Pasa",
-  alerta: "Con reservas",
-  error: "No pasa",
-  pendiente: "Pendiente",
-} as const;
-
 export default async function PaginaCaso({
   params,
   searchParams,
 }: {
   params: Promise<{ caso: string }>;
-  searchParams: Promise<{ archivo?: string }>;
+  searchParams: Promise<{ archivo?: string; cita?: string }>;
 }) {
   const { caso: slug } = await params;
-  const { archivo: archivoInicial } = await searchParams;
+  const { archivo: archivoInicial, cita } = await searchParams;
   if (!existeCaso(slug)) notFound();
 
   const caso = leerCaso(slug);
@@ -112,6 +107,28 @@ export default async function PaginaCaso({
           </ul>
         </Panel>
       </Seccion>
+
+      {ultimo ? (
+        <Seccion
+          etiqueta="Última corrección"
+          titulo="Qué dijo el corrector"
+          bajada="El resumen de la última corrida. La corrección completa muestra, dimensión por dimensión, la evidencia citada, el tope aplicado y qué faltó para el nivel de arriba."
+          accion={
+            <Link
+              href={`/resultados/${ultimo.id}`}
+              className="rounded-full border border-borde px-4 py-2 text-sm text-suave transition-colors hover:border-acento hover:text-acento"
+            >
+              Ver la corrección completa
+            </Link>
+          }
+        >
+          <ResumenCorreccion
+            veredicto={ultimo.veredicto}
+            filas={ultimo.filas}
+            sugerencia={ultimo.sugerencia}
+          />
+        </Seccion>
+      ) : null}
 
       <Seccion
         etiqueta="Corrida"
@@ -256,11 +273,16 @@ export default async function PaginaCaso({
       ) : null}
 
       <Seccion
+        id="archivos"
         etiqueta="Entrada"
         titulo="Los archivos del trabajo"
-        bajada="Esto es exactamente lo que se le manda al corrector: cada archivo de texto del caso, delimitado y marcado como dato."
+        bajada="Esto es exactamente lo que se le manda al corrector: cada archivo de texto del caso, delimitado y marcado como dato. Buscá acá cualquier cita de la corrección para verla en su contexto."
       >
-        <VisorArchivos archivos={archivos} rutaInicial={archivoInicial} />
+        <VisorArchivos
+          archivos={archivos}
+          rutaInicial={archivoInicial}
+          citaInicial={cita}
+        />
       </Seccion>
     </div>
   );

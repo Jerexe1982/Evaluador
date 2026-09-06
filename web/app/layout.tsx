@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { Geist, Geist_Mono } from "next/font/google";
+import { Navegacion } from "@/components/Navegacion";
+import { resumenSesion } from "@/lib/credenciales";
 import "./globals.css";
 
 const geistSans = Geist({ variable: "--font-geist-sans", subsets: ["latin"] });
@@ -12,44 +14,49 @@ export const metadata: Metadata = {
     "Tablero del agente corrector: la prueba de los tres casos, la calibración contra el criterio humano y la evidencia de cada punto.",
 };
 
-const NAVEGACION = [
-  { href: "/", texto: "Tablero" },
-  { href: "/trabajos", texto: "Trabajos" },
-  { href: "/rubrica", texto: "Rúbrica" },
-  { href: "/calibracion", texto: "Calibración" },
-];
-
 export default function RootLayout({ children }: LayoutProps<"/">) {
+  const sesion = resumenSesion();
+
   return (
     <html lang="es" className={`${geistSans.variable} ${geistMono.variable} h-full`}>
       <body className="min-h-full flex flex-col bg-fondo font-sans">
+        <a
+          href="#contenido"
+          className="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-20 focus:rounded-full focus:bg-acento focus:px-4 focus:py-2 focus:text-sm focus:text-black"
+        >
+          Saltar al contenido
+        </a>
         <header className="sticky top-0 z-10 border-b border-borde bg-fondo/85 backdrop-blur">
-          <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-4 px-6 py-4">
-            <div className="flex items-center gap-8">
+          <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-x-6 gap-y-3 px-6 py-3.5">
+            <div className="flex flex-wrap items-center gap-x-6 gap-y-2">
               <Link href="/" className="flex items-center gap-2.5">
                 <span className="h-2.5 w-2.5 rounded-full bg-acento" />
                 <span className="font-mono text-[11px] uppercase tracking-[0.22em] text-texto">
                   Agente corrector
                 </span>
               </Link>
-              <nav className="flex items-center gap-6">
-                {NAVEGACION.map((item) => (
-                  <Link
-                    key={item.href}
-                    href={item.href}
-                    className="font-mono text-[10px] uppercase tracking-[0.22em] text-tenue transition-colors hover:text-texto"
-                  >
-                    {item.texto}
-                  </Link>
-                ))}
-              </nav>
+              <Navegacion />
             </div>
-            <p className="hidden font-mono text-[10px] uppercase tracking-[0.22em] text-tenue lg:block">
-              Programación de y con Agentes de IA · MBA UCEMA
+            <p
+              className="flex items-center gap-2 font-mono text-[10px] uppercase tracking-[0.22em] text-tenue"
+              title={
+                sesion.activa
+                  ? "Hay sesión de ChatGPT: el corrector puede correr."
+                  : "Sin sesión de ChatGPT no se puede correr el corrector; se entra desde cualquier trabajo."
+              }
+            >
+              <span
+                className={`h-1.5 w-1.5 rounded-full ${sesion.activa ? "bg-ok" : "bg-mal"}`}
+              />
+              {sesion.activa
+                ? `Sesión activa${sesion.plan ? ` · plan ${sesion.plan}` : ""}`
+                : "Sin sesión de ChatGPT"}
             </p>
           </div>
         </header>
-        <main className="mx-auto w-full max-w-6xl flex-1 px-6 py-12">{children}</main>
+        <main id="contenido" className="mx-auto w-full max-w-6xl flex-1 px-6 py-12">
+          {children}
+        </main>
         <footer className="border-t border-borde px-6 py-6">
           <p className="mx-auto max-w-6xl font-mono text-[10px] uppercase tracking-[0.22em] text-tenue">
             Rúbrica: rubrica.md · Contrato: agente/system_prompt.md · Corridas: resultados/

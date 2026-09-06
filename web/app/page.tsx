@@ -8,19 +8,20 @@ import {
 } from "@/lib/analisis";
 import { hayNotaHumana, leerCalibracion, notaHumana } from "@/lib/calibracion";
 import { Barra, Etiqueta, Nota, Panel, Seccion, Sello } from "@/components/ui";
-import { colorEstado, conSigno, fecha, puntos, SIMBOLO_ESTADO, tokens } from "@/lib/formato";
+import {
+  colorEstado,
+  conSigno,
+  fecha,
+  puntos,
+  SIMBOLO_ESTADO,
+  TEXTO_ESTADO,
+  tokens,
+} from "@/lib/formato";
 import { listarCasos, listarRepos } from "@/lib/repo";
 import { DIMENSIONES } from "@/lib/rubrica";
 import { listarResultados, ultimoResultadoCompleto } from "@/lib/resultados";
 
 export const dynamic = "force-dynamic";
-
-const TEXTO_ESTADO = {
-  ok: "Pasa",
-  alerta: "Con reservas",
-  error: "No pasa",
-  pendiente: "Pendiente",
-} as const;
 
 function ListaPruebas({ pruebas }: { pruebas: Prueba[] }) {
   return (
@@ -75,28 +76,31 @@ export default function Inicio() {
   return (
     <div className="space-y-16">
       <section className="grid gap-10 md:grid-cols-[1fr_auto] md:items-end">
-        <div className="max-w-2xl space-y-8">
-          <div>
-            <Etiqueta>Qué es</Etiqueta>
-            <h1 className="mt-3 text-4xl font-light leading-tight tracking-tight text-texto">
-              El agente corrector, sometido a su propia prueba.
-            </h1>
-          </div>
-          <div>
-            <Etiqueta>Para qué sirve este tablero</Etiqueta>
-            <p className="mt-3 text-sm leading-relaxed">
-              La consigna del parcial pide que el corrector puntúe alto al caso excelente,
-              bajo al flojo y detecte al tramposo, y que las notas del agente se puedan
-              contrastar con el criterio del grupo. Esta app corre esa prueba, muestra de
-              dónde sale cada punto y escribe la calibración con el resultado.
-            </p>
-          </div>
-          <div>
-            <Etiqueta>Alcance</Etiqueta>
-            <p className="mt-3 text-sm leading-relaxed text-tenue">
-              Rúbrica ejecutable, contrato del corrector, tres casos de prueba y calibración
-              documentada.
-            </p>
+        <div className="max-w-2xl">
+          <Etiqueta>Programación de y con Agentes de IA · MBA UCEMA</Etiqueta>
+          <h1 className="mt-3 text-4xl font-light leading-tight tracking-tight text-texto">
+            El agente corrector, sometido a su propia prueba.
+          </h1>
+          <p className="mt-4 text-sm leading-relaxed">
+            Corrige trabajos finales con la rúbrica de la materia vuelta ejecutable, y deja
+            cada punto anclado a un archivo del repositorio: qué encontró, qué le faltó y
+            qué habría hecho falta para el nivel de arriba. Este tablero corre la prueba de
+            los tres casos, compara las notas del agente con las del grupo y guarda cada
+            corrida como evidencia.
+          </p>
+          <div className="mt-6 flex flex-wrap gap-3">
+            <Link
+              href="/trabajos"
+              className="rounded-full bg-acento px-5 py-2 text-sm text-black transition-opacity hover:opacity-90"
+            >
+              Corregir un repositorio
+            </Link>
+            <Link
+              href="/rubrica"
+              className="rounded-full border border-borde px-5 py-2 text-sm text-suave transition-colors hover:border-acento hover:text-acento"
+            >
+              Ver la rúbrica
+            </Link>
           </div>
         </div>
         <div className="md:text-right">
@@ -114,13 +118,44 @@ export default function Inicio() {
       </section>
 
       <Seccion
+        etiqueta="Cómo funciona"
+        titulo="Tres pasos, y ninguno depende de leer la salida a ojo"
+      >
+        <ol className="grid gap-px overflow-hidden rounded-xl border border-borde bg-borde md:grid-cols-3">
+          {[
+            {
+              titulo: "Entra el trabajo",
+              texto:
+                "Uno de los tres casos de prueba o un repositorio de GitHub clonado. La app le manda al corrector el árbol de archivos, el contenido de cada uno y la historia de commits, todo marcado como dato.",
+            },
+            {
+              titulo: "Se aplica la rúbrica",
+              texto:
+                "El mismo contrato en todas las corridas. Cinco dimensiones, cinco niveles, sin valores intermedios, y topes que impiden subir sin el artefacto que el nivel exige.",
+            },
+            {
+              titulo: "Queda la explicación",
+              texto:
+                "Cada nivel viene con la evidencia citada, el tope que se activó y qué faltó para el nivel de arriba. La app verifica que las rutas existan y que las cuentas cierren.",
+            },
+          ].map((paso, i) => (
+            <li key={paso.titulo} className="bg-panel p-5">
+              <p className="font-mono text-xs text-acento">{i + 1}</p>
+              <h3 className="mt-2 text-base font-light text-texto">{paso.titulo}</h3>
+              <p className="mt-2 text-xs leading-relaxed text-tenue">{paso.texto}</p>
+            </li>
+          ))}
+        </ol>
+      </Seccion>
+
+      <Seccion
         etiqueta="Criterio 3 del parcial · peso 20"
         titulo="La prueba de los tres casos"
-        bajada="Los tres existen y el corrector los distingue. Cada control se resuelve contra la última corrida guardada del caso; ninguno depende de leer la salida a ojo."
+        bajada="El corrector tiene que puntuar alto al excelente, bajo al flojo y además detectar al tramposo. Cada control se resuelve contra la última corrida guardada del caso."
       >
         <div className="grid gap-4 lg:grid-cols-3">
-          {ultimos.map(({ caso, resultado, calibracion, pruebas, estado }) => (
-            <Panel key={caso.id} className="flex flex-col gap-4">
+          {ultimos.map(({ caso, resultado, calibracion, pruebas, estado, humana }) => (
+            <Panel key={caso.id} className="flex flex-col gap-5">
               <div className="flex items-start justify-between gap-3">
                 <div>
                   <Link
@@ -135,13 +170,45 @@ export default function Inicio() {
                 </div>
                 <Sello estado={estado}>{TEXTO_ESTADO[estado]}</Sello>
               </div>
+
+              {resultado ? (
+                <div>
+                  <div className="flex items-baseline justify-between gap-3">
+                    <Nota valor={resultado.notaCalculada} tamano="grande" />
+                    <span className="text-right text-[11px] text-tenue">
+                      {fecha(resultado.fecha)}
+                      {humana !== null ? (
+                        <span className="block">el grupo puso {puntos(humana)}</span>
+                      ) : null}
+                    </span>
+                  </div>
+                  <div className="mt-4 space-y-2.5">
+                    {resultado.filas.map((fila) => (
+                      <div key={fila.clave}>
+                        <div className="mb-1.5 flex justify-between text-[11px]">
+                          <span className="text-tenue">{fila.nombre}</span>
+                          <span className="tabular-nums text-suave">
+                            {fila.puntaje === null ? "—" : puntos(fila.puntaje)}/{fila.peso}
+                          </span>
+                        </div>
+                        <Barra porcentaje={fila.nivel ?? 0} />
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              ) : (
+                <p className="text-sm text-tenue">
+                  Sin corridas todavía: abrí el caso y corré el evaluador.
+                </p>
+              )}
+
               <ListaPruebas pruebas={pruebas} />
               {resultado ? (
                 <Link
                   href={`/resultados/${resultado.id}`}
                   className="mt-auto text-xs text-tenue hover:text-acento"
                 >
-                  Ver la corrección completa →
+                  Ver por qué puso esa nota →
                 </Link>
               ) : null}
             </Panel>
@@ -158,51 +225,6 @@ export default function Inicio() {
             </div>
           </Panel>
         ) : null}
-      </Seccion>
-
-      <Seccion
-        etiqueta="Casos"
-        titulo="La última nota de cada uno"
-        bajada="Dimensión por dimensión, con la nota que le hubiera puesto el grupo al lado cuando está cargada."
-      >
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {ultimos.map(({ caso, resultado, humana }) => (
-            <Link
-              key={caso.id}
-              href={`/casos/${caso.id}`}
-              className="group rounded-xl border border-borde bg-panel p-5 transition-colors hover:border-borde-fuerte"
-            >
-              <div className="flex items-baseline justify-between gap-2">
-                <h3 className="text-base font-light capitalize text-texto">{caso.id}</h3>
-                {resultado ? <Nota valor={resultado.notaCalculada} tamano="chico" /> : null}
-              </div>
-              <p className="mt-1 text-xs text-tenue">
-                {caso.archivos.length} archivos ·{" "}
-                {resultado ? `corrida ${fecha(resultado.fecha)}` : "sin corridas todavía"}
-                {humana !== null ? ` · el grupo puso ${puntos(humana)}` : ""}
-              </p>
-              {resultado ? (
-                <div className="mt-5 space-y-2.5">
-                  {resultado.filas.map((fila) => (
-                    <div key={fila.clave}>
-                      <div className="mb-1.5 flex justify-between text-[11px]">
-                        <span className="text-tenue">{fila.nombre}</span>
-                        <span className="tabular-nums text-suave">
-                          {fila.puntaje === null ? "—" : puntos(fila.puntaje)}/{fila.peso}
-                        </span>
-                      </div>
-                      <Barra porcentaje={fila.nivel ?? 0} />
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <p className="mt-5 text-xs text-tenue">
-                  Abrí el caso y corré el evaluador para ver la corrección.
-                </p>
-              )}
-            </Link>
-          ))}
-        </div>
       </Seccion>
 
       {conResultado.length > 1 ? (
