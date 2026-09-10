@@ -1,4 +1,4 @@
-import type { Esfuerzo } from "./codex";
+import type { Esfuerzo } from "./tipos";
 
 /**
  * Los tres modelos habilitados para correr el corrector: Sol, Luna y Terra. Son de
@@ -15,10 +15,41 @@ export type Modelo = {
 };
 
 /**
- * Fijo para todos: si cada modelo razonara distinto, la comparación mediría el
- * esfuerzo y no el modelo.
+ * Cuánto razona el modelo antes de contestar. Era fijo en "medium" para que la
+ * comparación entre modelos no midiera el esfuerzo; ahora se elige por corrida, así
+ * que el esfuerzo queda guardado en el resultado y las tandas de consistencia se
+ * agrupan también por él: dos corridas con esfuerzo distinto no son la misma prueba.
  */
-export const ESFUERZO_RAZONAMIENTO: Esfuerzo = "medium";
+export type OpcionEsfuerzo = {
+  id: Esfuerzo;
+  nombre: string;
+  nota: string;
+};
+
+export const ESFUERZOS: OpcionEsfuerzo[] = [
+  {
+    id: "low",
+    nombre: "Esfuerzo bajo",
+    nota: "Contesta rápido y razona poco. Sirve para ver qué parte de la corrección aguanta sin pensar.",
+  },
+  {
+    id: "medium",
+    nombre: "Esfuerzo medio",
+    nota: "El de todas las corridas guardadas hasta ahora: es el que hace comparables las tandas viejas.",
+  },
+  {
+    id: "high",
+    nombre: "Esfuerzo alto",
+    nota: "Razona más antes de puntuar. Tarda y gasta más, y es donde conviene mirar si baja la varianza.",
+  },
+];
+
+/** El de siempre: cambiarlo movería la base de comparación de todo lo ya corrido. */
+export const ESFUERZO_POR_DEFECTO: Esfuerzo = "medium";
+
+export function buscarEsfuerzo(id: string): OpcionEsfuerzo | undefined {
+  return ESFUERZOS.find((e) => e.id === id);
+}
 
 export const MODELOS: Modelo[] = [
   {

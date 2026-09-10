@@ -3,7 +3,12 @@
 import { useRouter } from "next/navigation";
 import { useRef, useState } from "react";
 import { BotonEntrar } from "@/components/BotonEntrar";
-import { MODELOS, MODELO_POR_DEFECTO } from "@/lib/modelos";
+import {
+  ESFUERZOS,
+  ESFUERZO_POR_DEFECTO,
+  MODELOS,
+  MODELO_POR_DEFECTO,
+} from "@/lib/modelos";
 
 export type TrabajoEnCola = { id: string; nombre: string };
 
@@ -22,7 +27,8 @@ export function CorrerLote({
   habilitado: boolean;
 }) {
   const router = useRouter();
-  const [modelo, setModelo] = useState(MODELO_POR_DEFECTO);
+  const [modelo, setModelo] = useState<string>(MODELO_POR_DEFECTO);
+  const [esfuerzo, setEsfuerzo] = useState<string>(ESFUERZO_POR_DEFECTO);
   const [seleccion, setSeleccion] = useState<string[]>(trabajos.map((t) => t.id));
   const [estados, setEstados] = useState<Record<string, EstadoCorrida>>({});
   const [notas, setNotas] = useState<Record<string, string>>({});
@@ -30,6 +36,7 @@ export function CorrerLote({
   const cancelar = useRef(false);
 
   const elegido = MODELOS.find((m) => m.id === modelo)!;
+  const esfuerzoElegido = ESFUERZOS.find((e) => e.id === esfuerzo)!;
   const enCola = trabajos.filter((t) => seleccion.includes(t.id));
   const hechos = Object.values(estados).filter((e) => e === "hecho").length;
 
@@ -52,7 +59,7 @@ export function CorrerLote({
         const respuesta = await fetch("/api/evaluar", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ trabajo: trabajo.id, modelo }),
+          body: JSON.stringify({ trabajo: trabajo.id, modelo, esfuerzo }),
         });
         const datos = (await respuesta.json()) as {
           id?: string;
@@ -108,6 +115,19 @@ export function CorrerLote({
             </option>
           ))}
         </select>
+        <select
+          value={esfuerzo}
+          onChange={(e) => setEsfuerzo(e.target.value)}
+          disabled={corriendo}
+          className="rounded-lg border border-borde bg-fondo px-3 py-2 text-sm text-texto"
+          aria-label="Esfuerzo de razonamiento"
+        >
+          {ESFUERZOS.map((e) => (
+            <option key={e.id} value={e.id}>
+              {e.nombre}
+            </option>
+          ))}
+        </select>
         <button
           onClick={correr}
           disabled={corriendo || !habilitado || enCola.length === 0}
@@ -128,6 +148,9 @@ export function CorrerLote({
           </button>
         ) : null}
         <span className="text-xs text-tenue">{elegido.nota}</span>
+      </div>
+      <div className="-mt-3">
+        <span className="text-xs text-tenue">{esfuerzoElegido.nota}</span>
       </div>
 
       {!habilitado ? (

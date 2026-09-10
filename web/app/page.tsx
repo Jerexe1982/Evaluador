@@ -11,6 +11,7 @@ import { Barra, Etiqueta, Nota, Panel, Seccion, Sello } from "@/components/ui";
 import {
   colorEstado,
   conSigno,
+  esfuerzoCorto,
   fecha,
   puntos,
   SIMBOLO_ESTADO,
@@ -316,12 +317,16 @@ export default function Inicio() {
             {inestabilidades.map((e) => {
               const estable = e.notaMinima === e.notaMaxima;
               return (
-                <Panel key={`${e.caso}-${e.modelo}`}>
+                <Panel
+                  key={`${e.caso}\u0000${e.modelo}\u0000${e.esfuerzo}\u0000${e.contrato}`}
+                >
                   <div className="flex items-start justify-between gap-3">
                     <div>
                       <p className="text-sm capitalize text-texto">
                         {e.caso}{" "}
-                        <span className="font-mono text-xs text-tenue">{e.modelo}</span>
+                        <span className="font-mono text-xs text-tenue">
+                          {e.modelo} · esfuerzo {esfuerzoCorto(e.esfuerzo)}
+                        </span>
                       </p>
                       <p className="mt-1 text-xs text-tenue">
                         {e.corridas} corridas ·{" "}

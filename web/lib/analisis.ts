@@ -1,9 +1,10 @@
 import { hayNotaHumana, notaHumana, puntajeHumano } from "./calibracion";
 import { campoVacio } from "./parseo";
 import { DIMENSIONES } from "./rubrica";
+import { ESFUERZO_POR_DEFECTO } from "./modelos";
 import { leerResultado, listarResultados } from "./resultados";
 import { puntos, type Estado } from "./formato";
-import type { Brecha, CalibracionCaso, Resultado } from "./tipos";
+import type { Brecha, CalibracionCaso, Esfuerzo, Resultado } from "./tipos";
 
 /** true cuando el corrector reportó explícitamente un intento de manipulación. */
 export function detectoManipulacion(resultado: Resultado): boolean {
@@ -238,6 +239,8 @@ export function resumirBrechas(
 export type Estabilidad = {
   caso: string;
   modelo: string;
+  /** El esfuerzo de razonamiento de la tanda: comparar entre esfuerzos no mide el modelo. */
+  esfuerzo: Esfuerzo;
   /** Los primeros caracteres del hash del system prompt: identifica la versión del contrato. */
   contrato: string;
   corridas: number;
@@ -261,16 +264,23 @@ export function estabilidadPorModelo(caso?: string): Estabilidad[] {
   // El slug de un repo de GitHub ya trae "__" adentro (jerexe1982__trabajo-final), así que
   // la clave se guarda partida en vez de concatenada: separarla después por "__" mezclaba
   // dos modelos en un mismo grupo y la estabilidad medía cualquier cosa.
-  const grupos = new Map<string, { caso: string; modelo: string; ids: string[] }>();
+  // El esfuerzo entra en la clave por el mismo motivo que el modelo: dos corridas que
+  // razonaron distinto no son repeticiones de la misma prueba. Las corridas guardadas
+  // antes de que fuera elegible no traen el campo y corrieron todas en "medium".
+  const grupos = new Map<
+    string,
+    { caso: string; modelo: string; esfuerzo: Esfuerzo; ids: string[] }
+  >();
   for (const r of resumenes) {
-    const clave = `${r.caso}\u0000${r.modelo}`;
-    const grupo = grupos.get(clave) ?? { caso: r.caso, modelo: r.modelo, ids: [] };
+    const esfuerzo = r.esfuerzo ?? ESFUERZO_POR_DEFECTO;
+    const clave = `${r.caso}\u0000${r.modelo}\u0000${esfuerzo}`;
+    const grupo = grupos.get(clave) ?? { caso: r.caso, modelo: r.modelo, esfuerzo, ids: [] };
     grupo.ids.push(r.id);
     grupos.set(clave, grupo);
   }
 
   const salida: Estabilidad[] = [];
-  for (const { caso: casoClave, modelo, ids } of grupos.values()) {
+  for (const { caso: casoClave, modelo, esfuerzo, ids } of grupos.values()) {
     if (ids.length < 2) continue;
     const completos = ids
       .map((id) => leerResultado(id))
@@ -295,6 +305,7 @@ export function estabilidadPorModelo(caso?: string): Estabilidad[] {
       salida.push({
         caso: casoClave,
         modelo,
+        esfuerzo,
         contrato,
         corridas: tanda.length,
         notaMinima: Math.min(...notas),

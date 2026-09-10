@@ -21,6 +21,7 @@ import { leerCalibracion } from "@/lib/calibracion";
 import {
   bytes,
   colorEstado,
+  esfuerzoCorto,
   fecha,
   miles,
   puntos,
@@ -153,7 +154,8 @@ export default async function PaginaResultado({
             </p>
           ) : null}
           <p className="mt-3 font-mono text-[11px] text-tenue">
-            {fecha(resultado.fecha)} · {resultado.modelo} ·{" "}
+            {fecha(resultado.fecha)} · {resultado.modelo} · esfuerzo{" "}
+            {esfuerzoCorto(resultado.esfuerzo)} ·{" "}
             {(resultado.duracionMs / 1000).toFixed(1)} s ·{" "}
             {detectoManipulacion(resultado)
               ? "reporta manipulación"

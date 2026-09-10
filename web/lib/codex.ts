@@ -1,5 +1,6 @@
 import { randomUUID } from "node:crypto";
 import type { Credenciales } from "./credenciales";
+import type { Esfuerzo } from "./tipos";
 
 /**
  * Cliente mínimo del backend de Codex, el que atiende a las suscripciones de
@@ -13,7 +14,7 @@ const URL_CODEX = "https://chatgpt.com/backend-api/codex/responses";
 const ORIGINATOR = "evaluador-ucema";
 const TIMEOUT_MS = 280_000;
 
-export type Esfuerzo = "low" | "medium" | "high";
+export type { Esfuerzo };
 
 export type UsoCodex = {
   entrada: number;

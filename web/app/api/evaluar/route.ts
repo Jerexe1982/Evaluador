@@ -1,6 +1,13 @@
 import { NextResponse } from "next/server";
 import { evaluarCaso, haySesionChatGPT } from "@/lib/evaluador";
-import { buscarModelo, MODELOS, MODELO_POR_DEFECTO } from "@/lib/modelos";
+import {
+  buscarEsfuerzo,
+  buscarModelo,
+  ESFUERZOS,
+  ESFUERZO_POR_DEFECTO,
+  MODELOS,
+  MODELO_POR_DEFECTO,
+} from "@/lib/modelos";
 import { existeTrabajo } from "@/lib/repo";
 import { guardarResultado } from "@/lib/resultados";
 
@@ -22,6 +29,7 @@ export async function POST(request: Request) {
     caso?: string;
     trabajo?: string;
     modelo?: string;
+    esfuerzo?: string;
   };
   // "trabajo" es el nombre nuevo —un caso de prueba o un repo de GitHub—; "caso" sigue
   // andando para no romper nada que ya esté llamando a esta ruta.
@@ -40,6 +48,21 @@ export async function POST(request: Request) {
     );
   }
 
+  // Y lo mismo con el esfuerzo de razonamiento: sin valor se usa el de siempre.
+  const esfuerzo = cuerpo.esfuerzo
+    ? buscarEsfuerzo(cuerpo.esfuerzo)?.id
+    : ESFUERZO_POR_DEFECTO;
+  if (!esfuerzo) {
+    return NextResponse.json(
+      {
+        error:
+          `El esfuerzo "${cuerpo.esfuerzo}" no está habilitado. ` +
+          `Elegí uno de: ${ESFUERZOS.map((e) => e.id).join(", ")}.`,
+      },
+      { status: 400 },
+    );
+  }
+
   if (!existeTrabajo(caso)) {
     return NextResponse.json(
       { error: `No existe el trabajo "${caso}".` },
@@ -48,7 +71,7 @@ export async function POST(request: Request) {
   }
 
   try {
-    const resultado = await evaluarCaso(caso, modelo);
+    const resultado = await evaluarCaso(caso, modelo, esfuerzo);
     guardarResultado(resultado);
     return NextResponse.json({ id: resultado.id, nota: resultado.notaCalculada });
   } catch (error) {

@@ -2,7 +2,7 @@ import { correrCodex } from "./codex";
 import { obtenerCredenciales } from "./credenciales";
 import { armarUserPrompt } from "./prompt";
 import { leerSystemPromptAgente } from "./repo";
-import { buscarModelo, ESFUERZO_RAZONAMIENTO } from "./modelos";
+import { buscarEsfuerzo, buscarModelo, ESFUERZO_POR_DEFECTO } from "./modelos";
 import {
   parsearCamposCerrados,
   parsearConteo,
@@ -15,7 +15,7 @@ import {
   verificar,
 } from "./parseo";
 import { nuevoId } from "./resultados";
-import type { Resultado } from "./tipos";
+import type { Esfuerzo, Resultado } from "./tipos";
 
 export { haySesionChatGPT } from "./credenciales";
 
@@ -24,11 +24,19 @@ export { haySesionChatGPT } from "./credenciales";
  * de GitHub clonado— y devuelve el resultado ya parseado, con la entrada exacta que se
  * mandó y el uso de tokens de esa corrida.
  */
-export async function evaluarCaso(slug: string, modeloId: string): Promise<Resultado> {
+export async function evaluarCaso(
+  slug: string,
+  modeloId: string,
+  esfuerzoId: string = ESFUERZO_POR_DEFECTO,
+): Promise<Resultado> {
   // La lista de modelos es la única puerta: un id de afuera no se cambia por el
   // de por defecto sin avisar, corta la corrida.
   const modelo = buscarModelo(modeloId);
   if (!modelo) throw new Error(`El modelo "${modeloId}" no está habilitado.`);
+  // Mismo criterio para el esfuerzo: si llega uno que no existe, la corrida no sale.
+  const opcionEsfuerzo = buscarEsfuerzo(esfuerzoId);
+  if (!opcionEsfuerzo) throw new Error(`El esfuerzo "${esfuerzoId}" no está habilitado.`);
+  const esfuerzo: Esfuerzo = opcionEsfuerzo.id;
   const systemPrompt = leerSystemPromptAgente();
   const { userPrompt, archivos, inyecciones, trabajo } = await armarUserPrompt(slug);
   const credenciales = await obtenerCredenciales();
@@ -36,7 +44,7 @@ export async function evaluarCaso(slug: string, modeloId: string): Promise<Resul
   const inicio = Date.now();
   const respuesta = await correrCodex({
     modelo: modelo.id,
-    esfuerzo: ESFUERZO_RAZONAMIENTO,
+    esfuerzo,
     systemPrompt,
     userPrompt,
     credenciales,
@@ -64,6 +72,7 @@ export async function evaluarCaso(slug: string, modeloId: string): Promise<Resul
     origen: trabajo.origen,
     fecha: fecha.toISOString(),
     modelo: respuesta.modelo,
+    esfuerzo,
     duracionMs,
     filas,
     notaDeclarada,

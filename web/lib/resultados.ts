@@ -44,6 +44,7 @@ export function listarResultados(caso?: string): ResumenResultado[] {
       tipo: r.tipo ?? "caso",
       fecha: r.fecha,
       modelo: r.modelo,
+      esfuerzo: r.esfuerzo,
       notaCalculada: r.notaCalculada,
       notaDeclarada: r.notaDeclarada,
       tokensTotales: r.uso.tokensEntrada + r.uso.tokensSalida,

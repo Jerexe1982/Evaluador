@@ -1,3 +1,5 @@
+import type { Esfuerzo } from "./tipos";
+
 /** Formatos y colores compartidos por las vistas. */
 
 export type Estado = "ok" | "alerta" | "error" | "pendiente";
@@ -22,6 +24,14 @@ export function fechaCorta(iso: string): string {
 }
 
 /** Compacto para los listados: "24,1k tokens". */
+/**
+ * El esfuerzo, en una palabra. Un resultado sin el campo es de antes de que fuera
+ * elegible, y esas corridas fueron todas con esfuerzo medio.
+ */
+export function esfuerzoCorto(esfuerzo: Esfuerzo | undefined): string {
+  return { low: "bajo", medium: "medio", high: "alto" }[esfuerzo ?? "medium"];
+}
+
 export function tokens(n: number): string {
   return n >= 1000 ? `${(n / 1000).toFixed(1).replace(".", ",")}k tokens` : `${n} tokens`;
 }

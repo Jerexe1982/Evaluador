@@ -1,3 +1,6 @@
+/** Cuánto razona el modelo antes de contestar. Lo elige quien corre la corrida. */
+export type Esfuerzo = "low" | "medium" | "high";
+
 export type ClaveDimension =
   | "sistema"
   | "proceso"
@@ -198,6 +201,8 @@ export type Resultado = {
   origen?: OrigenGithub | null;
   fecha: string;
   modelo: string;
+  /** Opcional: las corridas guardadas antes de que el esfuerzo fuera elegible no lo traen. */
+  esfuerzo?: Esfuerzo;
   duracionMs: number;
   filas: FilaResultado[];
   notaDeclarada: number | null;
@@ -227,6 +232,7 @@ export type ResumenResultado = {
   tipo: TipoTrabajo;
   fecha: string;
   modelo: string;
+  esfuerzo?: Esfuerzo;
   notaCalculada: number;
   notaDeclarada: number | null;
   tokensTotales: number;

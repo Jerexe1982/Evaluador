@@ -3,7 +3,12 @@
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { BotonEntrar } from "@/components/BotonEntrar";
-import { MODELOS, MODELO_POR_DEFECTO } from "@/lib/modelos";
+import {
+  ESFUERZOS,
+  ESFUERZO_POR_DEFECTO,
+  MODELOS,
+  MODELO_POR_DEFECTO,
+} from "@/lib/modelos";
 
 /**
  * Dispara una corrida del corrector sobre el caso y, cuando termina, lleva
@@ -22,11 +27,13 @@ export function BotonCorrer({
   cantidadArchivos: number;
 }) {
   const router = useRouter();
-  const [modelo, setModelo] = useState(MODELO_POR_DEFECTO);
+  const [modelo, setModelo] = useState<string>(MODELO_POR_DEFECTO);
+  const [esfuerzo, setEsfuerzo] = useState<string>(ESFUERZO_POR_DEFECTO);
   const [corriendo, setCorriendo] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const elegido = MODELOS.find((m) => m.id === modelo)!;
+  const esfuerzoElegido = ESFUERZOS.find((e) => e.id === esfuerzo)!;
 
   async function correr() {
     setCorriendo(true);
@@ -35,7 +42,7 @@ export function BotonCorrer({
       const respuesta = await fetch("/api/evaluar", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ caso, modelo }),
+        body: JSON.stringify({ caso, modelo, esfuerzo }),
       });
       const datos = (await respuesta.json()) as { id?: string; error?: string };
       if (!respuesta.ok || !datos.id) {
@@ -66,6 +73,19 @@ export function BotonCorrer({
             </option>
           ))}
         </select>
+        <select
+          value={esfuerzo}
+          onChange={(e) => setEsfuerzo(e.target.value)}
+          disabled={corriendo}
+          className="rounded-lg border border-borde bg-fondo px-3 py-2 text-sm text-texto"
+          aria-label="Esfuerzo de razonamiento"
+        >
+          {ESFUERZOS.map((e) => (
+            <option key={e.id} value={e.id}>
+              {e.nombre}
+            </option>
+          ))}
+        </select>
         <button
           onClick={correr}
           disabled={corriendo || !habilitado}
@@ -80,6 +100,7 @@ export function BotonCorrer({
         </span>
       </div>
       <p className="text-xs text-tenue">{elegido.nota}</p>
+      <p className="text-xs text-tenue">{esfuerzoElegido.nota}</p>
       {!habilitado ? (
         <div className="rounded-lg border border-borde bg-fondo p-4">
           <p className="mb-3 text-xs text-alerta">
