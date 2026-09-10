@@ -2,6 +2,7 @@ import { execFile } from "node:child_process";
 import fs from "node:fs";
 import path from "node:path";
 import { promisify } from "node:util";
+import { seudonimizadorDeAutores } from "./anonimo";
 import { guardarOrigen, olvidarOrigen } from "./origenes";
 import { rutaTrabajos } from "./rutas";
 import type { OrigenGithub } from "./tipos";
@@ -161,22 +162,39 @@ export function eliminarRepo(id: string): void {
 /**
  * La historia de commits del clon, en texto. Es evidencia de la rúbrica: un repo con un
  * único commit del último día contradice cualquier relato de semanas de iteración.
+ *
+ * Los autores van seudonimizados (`autor-1`, `autor-2`…): cuántas personas commitearon y
+ * cómo se reparte el trabajo entre ellas es lo que la rúbrica mira, y sus nombres no son
+ * evidencia de ninguna dimensión. Los hashes y las fechas quedan intactos, que es lo que
+ * el contrato necesita para resolver un commit citado.
  */
 export async function historiaDeCommits(id: string): Promise<string | null> {
   const dir = path.join(rutaTrabajos(), id);
   if (!fs.existsSync(path.join(dir, ".git"))) return null;
   try {
+    // Campos separados por \x1f, no por " · ": un mensaje de commit puede traer cualquier
+    // cosa, y partir mal la línea seudonimizaría el texto equivocado.
     const salida = await git(
       [
         "log",
         "-n",
         String(COMMITS_EN_EL_PROMPT),
         "--date=short",
-        "--pretty=%h · %ad · %an · %s",
+        `--pretty=${["%h", "%ad", "%an", "%s"].join("%x1f")}`,
       ],
       dir,
     );
-    return salida.trim() || null;
+    const seudonimo = seudonimizadorDeAutores();
+    const lineas = salida
+      .trim()
+      .split("\n")
+      .filter((linea) => linea.trim() !== "")
+      .map((linea) => {
+        const [hash, fecha, autor, ...resto] = linea.split(SEPARADOR);
+        if (resto.length === 0) return linea;
+        return [hash, fecha, seudonimo(autor), resto.join(SEPARADOR)].join(" · ");
+      });
+    return lineas.length > 0 ? lineas.join("\n") : null;
   } catch {
     return null;
   }
