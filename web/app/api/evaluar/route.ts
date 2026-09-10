@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { evaluarCaso, haySesionChatGPT } from "@/lib/evaluador";
-import { buscarModelo, MODELO_POR_DEFECTO } from "@/lib/modelos";
+import { buscarModelo, MODELOS, MODELO_POR_DEFECTO } from "@/lib/modelos";
 import { existeTrabajo } from "@/lib/repo";
 import { guardarResultado } from "@/lib/resultados";
 
@@ -26,7 +26,19 @@ export async function POST(request: Request) {
   // "trabajo" es el nombre nuevo —un caso de prueba o un repo de GitHub—; "caso" sigue
   // andando para no romper nada que ya esté llamando a esta ruta.
   const caso = cuerpo.trabajo ?? cuerpo.caso ?? "";
-  const modelo = buscarModelo(cuerpo.modelo ?? "")?.id ?? MODELO_POR_DEFECTO;
+  // Sin modelo se usa el de siempre; con uno que no está en la lista se corta acá,
+  // para no correr —y facturarle a la suscripción— algo que nadie pidió.
+  const modelo = cuerpo.modelo ? buscarModelo(cuerpo.modelo)?.id : MODELO_POR_DEFECTO;
+  if (!modelo) {
+    return NextResponse.json(
+      {
+        error:
+          `El modelo "${cuerpo.modelo}" no está habilitado. ` +
+          `Elegí uno de: ${MODELOS.map((m) => m.nombre).join(", ")}.`,
+      },
+      { status: 400 },
+    );
+  }
 
   if (!existeTrabajo(caso)) {
     return NextResponse.json(

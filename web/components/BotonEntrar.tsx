@@ -12,11 +12,14 @@ type Estado =
 const INTERVALO_MS = 1500;
 
 /**
+ * `compacto` es la variante del encabezado: el mismo login, con el tamaño de la
+ * barra y los avisos en un panel flotante para no empujar el resto de la fila.
+ *
  * Dispara el OAuth con ChatGPT: abre la pantalla de OpenAI en otra pestaña y
  * espera a que el servidor reciba el código. La sesión queda guardada donde la
  * busca el CLI de Codex, así que sirve para las dos cosas.
  */
-export function BotonEntrar() {
+export function BotonEntrar({ compacto = false }: { compacto?: boolean }) {
   const router = useRouter();
   const [estado, setEstado] = useState<Estado>({ fase: "inactivo" });
   const [error, setError] = useState<string | null>(null);
@@ -57,32 +60,60 @@ export function BotonEntrar() {
   }
 
   const esperando = estado.fase === "esperando";
+  const mensaje = estado.fase === "error" ? estado.mensaje : error;
+
+  const avisos =
+    esperando || mensaje ? (
+      <div className={compacto ? "space-y-2" : "space-y-2"}>
+        {esperando ? (
+          <p className="text-xs text-tenue">
+            Se abrió la pantalla de OpenAI en otra pestaña. Si el navegador la bloqueó,{" "}
+            <a
+              href={estado.url}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-acento underline"
+            >
+              abrila desde acá
+            </a>
+            .
+          </p>
+        ) : null}
+        {mensaje ? <p className="text-xs text-mal">{mensaje}</p> : null}
+      </div>
+    ) : null;
+
+  const boton = (
+    <button
+      onClick={entrar}
+      disabled={esperando}
+      className={
+        compacto
+          ? "rounded-full border border-borde px-3 py-1.5 font-mono text-[10px] uppercase tracking-[0.22em] text-tenue transition-colors hover:bg-white/5 hover:text-suave disabled:opacity-40"
+          : "rounded-full bg-acento px-5 py-2 text-sm text-black transition-opacity hover:opacity-90 disabled:opacity-40"
+      }
+    >
+      {esperando ? "Esperando a OpenAI…" : compacto ? "Entrar" : "Entrar con ChatGPT"}
+    </button>
+  );
+
+  if (compacto) {
+    return (
+      <div className="relative">
+        {boton}
+        {avisos ? (
+          <div className="absolute right-0 top-full z-20 mt-2 w-72 rounded-lg border border-borde bg-fondo p-3 shadow-lg">
+            {avisos}
+          </div>
+        ) : null}
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-2">
-      <button
-        onClick={entrar}
-        disabled={esperando}
-        className="rounded-full bg-acento px-5 py-2 text-sm text-black transition-opacity hover:opacity-90 disabled:opacity-40"
-      >
-        {esperando ? "Esperando a OpenAI…" : "Entrar con ChatGPT"}
-      </button>
-
-      {esperando ? (
-        <p className="text-xs text-tenue">
-          Se abrió la pantalla de OpenAI en otra pestaña. Si el navegador la bloqueó,{" "}
-          <a href={estado.url} target="_blank" rel="noopener noreferrer" className="text-acento underline">
-            abrila desde acá
-          </a>
-          .
-        </p>
-      ) : null}
-
-      {estado.fase === "error" ? (
-        <p className="text-xs text-mal">{estado.mensaje}</p>
-      ) : null}
-      {error ? <p className="text-xs text-mal">{error}</p> : null}
-
+      {boton}
+      {avisos}
       <p className="text-xs text-tenue">
         Es el mismo login que hace <code className="font-mono">codex login</code>: la sesión
         queda en <code className="font-mono">~/.codex/auth.json</code> y la comparten la app

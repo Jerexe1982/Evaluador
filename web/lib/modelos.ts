@@ -1,9 +1,12 @@
 import type { Esfuerzo } from "./codex";
 
 /**
- * Modelos habilitados para correr el corrector. Son los que la suscripción de
- * ChatGPT ofrece a través de Codex: no se facturan por token, así que la
- * comparación entre ellos es por calidad de corrección y por tiempo, no por precio.
+ * Los tres modelos habilitados para correr el corrector: Sol, Luna y Terra. Son de
+ * la misma generación a propósito —comparar entre generaciones mezcla el modelo con
+ * el contrato— y la suscripción de ChatGPT los sirve vía Codex sin facturar por
+ * token, así que la comparación es por calidad de corrección y por tiempo.
+ *
+ * Es la lista completa de lo permitido: la API rechaza cualquier otro id.
  */
 export type Modelo = {
   id: string;
@@ -19,19 +22,9 @@ export const ESFUERZO_RAZONAMIENTO: Esfuerzo = "medium";
 
 export const MODELOS: Modelo[] = [
   {
-    id: "gpt-6-astra",
-    nombre: "GPT-6-Astra",
-    nota: "El más capaz. Es el que usamos para diseñar y calibrar la rúbrica.",
-  },
-  {
     id: "gpt-5.6-sol",
     nombre: "GPT-5.6-Sol",
-    nota: "El caballo de batalla de la generación anterior, para tareas de todos los días.",
-  },
-  {
-    id: "gpt-5.6-terra",
-    nombre: "GPT-5.6-Terra",
-    nota: "Equilibrado. Sirve para comparar si la corrección se sostiene con menos modelo.",
+    nota: "El más capaz de los tres. Es el que usamos para diseñar y calibrar la rúbrica.",
   },
   {
     id: "gpt-5.6-luna",
@@ -39,14 +32,9 @@ export const MODELOS: Modelo[] = [
     nota: "Rápido y barato dentro de su generación. Buen punto medio para probar el piso.",
   },
   {
-    id: "gpt-5.5",
-    nombre: "GPT-5.5",
-    nota: "Generación previa ya probada. Útil para ver si la rúbrica envejece bien.",
-  },
-  {
-    id: "gpt-5.4-mini",
-    nombre: "GPT-5.4-Mini",
-    nota: "El más chico. El criterio del curso pide probar si alcanza para la tarea.",
+    id: "gpt-5.6-terra",
+    nombre: "GPT-5.6-Terra",
+    nota: "Equilibrado. Sirve para comparar si la corrección se sostiene con menos modelo.",
   },
 ];
 export const MODELO_POR_DEFECTO = MODELOS[0].id;

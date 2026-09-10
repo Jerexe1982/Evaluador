@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { Geist, Geist_Mono } from "next/font/google";
 import { Navegacion } from "@/components/Navegacion";
+import { SesionEncabezado } from "@/components/SesionEncabezado";
 import { resumenSesion } from "@/lib/credenciales";
 import "./globals.css";
 
@@ -37,21 +38,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
               </Link>
               <Navegacion />
             </div>
-            <p
-              className="flex items-center gap-2 font-mono text-[10px] uppercase tracking-[0.22em] text-tenue"
-              title={
-                sesion.activa
-                  ? "Hay sesión de ChatGPT: el corrector puede correr."
-                  : "Sin sesión de ChatGPT no se puede correr el corrector; se entra desde cualquier trabajo."
-              }
-            >
-              <span
-                className={`h-1.5 w-1.5 rounded-full ${sesion.activa ? "bg-ok" : "bg-mal"}`}
-              />
-              {sesion.activa
-                ? `Sesión activa${sesion.plan ? ` · plan ${sesion.plan}` : ""}`
-                : "Sin sesión de ChatGPT"}
-            </p>
+            <SesionEncabezado sesion={sesion} />
           </div>
         </header>
         <main id="contenido" className="mx-auto w-full max-w-6xl flex-1 px-6 py-12">

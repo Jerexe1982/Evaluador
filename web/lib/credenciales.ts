@@ -23,6 +23,8 @@ const MARGEN_MS = 60_000;
 /** Lo que la app muestra de la sesión sin salir a la red. */
 export type Sesion = {
   activa: boolean;
+  /** El access token guardado ya venció: la próxima corrida tiene que renovarlo. */
+  vencida: boolean;
   plan: string | null;
   /** ISO del vencimiento del access token; null si no se pudo leer. */
   vence: string | null;
@@ -97,6 +99,11 @@ function venceEn(accessToken: string): number | null {
   return typeof exp === "number" ? exp * 1000 : null;
 }
 
+function estaVencido(accessToken: string): boolean {
+  const vence = venceEn(accessToken);
+  return vence === null || vence - MARGEN_MS <= Date.now();
+}
+
 /** Hay sesión de ChatGPT utilizable si Codex dejó un access token en su auth.json. */
 export function haySesionChatGPT(): boolean {
   return Boolean(leerArchivo()?.tokens?.access_token);
@@ -105,10 +112,11 @@ export function haySesionChatGPT(): boolean {
 /** El estado de la sesión para la vista: no renueva nada ni sale a la red. */
 export function resumenSesion(): Sesion {
   const access = leerArchivo()?.tokens?.access_token;
-  if (!access) return { activa: false, plan: null, vence: null };
+  if (!access) return { activa: false, vencida: false, plan: null, vence: null };
   const vence = venceEn(access);
   return {
     activa: true,
+    vencida: estaVencido(access),
     plan: datosCuenta(access).plan,
     vence: vence === null ? null : new Date(vence).toISOString(),
   };
@@ -140,6 +148,27 @@ export function guardarSesion(tokens: {
   });
 }
 
+/** OpenAI invalida el refresh token viejo apenas se usa: reusarlo da 401. */
+function esTokenYaUsado(detalle: string): boolean {
+  return detalle.includes("refresh_token_reused") || detalle.includes("already been used");
+}
+
+class ErrorRenovacion extends Error {
+  constructor(
+    readonly status: number,
+    readonly detalle: string,
+  ) {
+    super(
+      esTokenYaUsado(detalle)
+        ? "El refresh token de ChatGPT ya se había usado y OpenAI lo dio de baja. " +
+          "Volvé a entrar con `codex login` (opción «Sign in with ChatGPT»)."
+        : `No se pudo renovar el token de ChatGPT (${status}). ` +
+          `Volvé a entrar con \`codex login\`.${detalle ? ` Detalle: ${detalle}` : ""}`,
+    );
+    this.name = "ErrorRenovacion";
+  }
+}
+
 async function renovar(refreshToken: string): Promise<{ access: string; refresh: string }> {
   const respuesta = await fetch(URL_TOKEN, {
     method: "POST",
@@ -153,10 +182,7 @@ async function renovar(refreshToken: string): Promise<{ access: string; refresh:
 
   if (!respuesta.ok) {
     const detalle = await respuesta.text().catch(() => "");
-    throw new Error(
-      `No se pudo renovar el token de ChatGPT (${respuesta.status}). ` +
-        `Volvé a entrar con \`codex login\`.${detalle ? ` Detalle: ${detalle}` : ""}`,
-    );
+    throw new ErrorRenovacion(respuesta.status, detalle);
   }
 
   const json = (await respuesta.json()) as { access_token?: string; refresh_token?: string };
@@ -182,26 +208,45 @@ const FALTA_SESION =
   "No hay sesión de ChatGPT. Instalá el CLI de Codex y corré `codex login` " +
   "eligiendo «Sign in with ChatGPT»; la app usa esa misma sesión.";
 
+/**
+ * Una sola renovación a la vez en el proceso: si dos corridas arrancan juntas con el
+ * token vencido, la segunda esperaría a la primera en vez de gastar el mismo refresh
+ * token dos veces —que es lo que OpenAI rechaza con `refresh_token_reused`.
+ */
+let renovacionEnCurso: Promise<string> | null = null;
+
+async function renovarYGuardar(): Promise<string> {
+  // Se relee el archivo recién acá: el CLI de Codex —u otra corrida— pudo haberlo
+  // renovado mientras esta esperaba su turno.
+  const datos = leerArchivo();
+  const access = datos?.tokens?.access_token;
+  if (!datos || !access) throw new Error(FALTA_SESION);
+  if (!estaVencido(access)) return access;
+
+  const refresh = datos.tokens?.refresh_token;
+  if (!refresh) throw new Error(`El token de ChatGPT venció y no hay refresh token. ${FALTA_SESION}`);
+
+  const nuevos = await renovar(refresh);
+  guardarTokens(datos, nuevos.access, nuevos.refresh);
+  return nuevos.access;
+}
+
 /** El access token vigente de la suscripción, renovándolo contra OpenAI si venció. */
 export async function obtenerCredenciales(): Promise<Credenciales> {
   const datos = leerArchivo();
   const access = datos?.tokens?.access_token;
   if (!datos || !access) throw new Error(FALTA_SESION);
 
-  const vence = venceEn(access);
-  const vencido = vence === null || vence - MARGEN_MS <= Date.now();
-
   let token = access;
-  if (vencido) {
-    const refresh = datos.tokens?.refresh_token;
-    if (!refresh) throw new Error(`El token de ChatGPT venció y no hay refresh token. ${FALTA_SESION}`);
-    const nuevos = await renovar(refresh);
-    guardarTokens(datos, nuevos.access, nuevos.refresh);
-    token = nuevos.access;
+  if (estaVencido(access)) {
+    renovacionEnCurso ??= renovarYGuardar().finally(() => {
+      renovacionEnCurso = null;
+    });
+    token = await renovacionEnCurso;
   }
 
   const { accountId, plan } = datosCuenta(token);
-  const cuenta = accountId ?? datos.tokens?.account_id ?? null;
+  const cuenta = accountId ?? leerArchivo()?.tokens?.account_id ?? null;
   if (!cuenta) {
     throw new Error(
       "El token de ChatGPT no trae el id de cuenta. Volvé a entrar con `codex login`.",

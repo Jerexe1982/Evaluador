@@ -2,7 +2,7 @@ import { correrCodex } from "./codex";
 import { obtenerCredenciales } from "./credenciales";
 import { armarUserPrompt } from "./prompt";
 import { leerSystemPromptAgente } from "./repo";
-import { buscarModelo, ESFUERZO_RAZONAMIENTO, MODELO_POR_DEFECTO } from "./modelos";
+import { buscarModelo, ESFUERZO_RAZONAMIENTO } from "./modelos";
 import {
   parsearCamposCerrados,
   parsearConteo,
@@ -25,7 +25,10 @@ export { haySesionChatGPT } from "./credenciales";
  * mandó y el uso de tokens de esa corrida.
  */
 export async function evaluarCaso(slug: string, modeloId: string): Promise<Resultado> {
-  const modelo = buscarModelo(modeloId) ?? buscarModelo(MODELO_POR_DEFECTO)!;
+  // La lista de modelos es la única puerta: un id de afuera no se cambia por el
+  // de por defecto sin avisar, corta la corrida.
+  const modelo = buscarModelo(modeloId);
+  if (!modelo) throw new Error(`El modelo "${modeloId}" no está habilitado.`);
   const systemPrompt = leerSystemPromptAgente();
   const { userPrompt, archivos, inyecciones, trabajo } = await armarUserPrompt(slug);
   const credenciales = await obtenerCredenciales();
