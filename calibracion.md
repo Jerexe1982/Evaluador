@@ -7,11 +7,15 @@ con entrada byte-idéntica** —mismo hash MD5 de `entrada.systemPrompt` y de `e
 los JSON de [`resultados/`](resultados/)— y preguntar por qué dieron distinto. Si dos corridas con la
 misma entrada dan dos notas, la rúbrica tiene un borde sin definir; no hace falta discutirlo, se mide.
 
-Se organiza en dos partes, que son las dos formas en que una rúbrica falla:
+Arranca por las dos formas en que una rúbrica falla:
 
 - **Ambigüedad** — dos correctores razonables puntúan distinto, y los dos tienen razón con el texto
   que está escrito.
 - **Trampa** — un trabajo saca puntaje alto sin merecerlo, y la rúbrica no tiene con qué impedirlo.
+
+Esas son las partes 1 y 2. Después vienen las tres mediciones que las pusieron a prueba: prompt
+injection (parte 3), consistencia entre corridas (parte 4) y la primera ronda de control contra el
+agente (parte 5).
 
 ---
 
@@ -312,14 +316,111 @@ La separación entre el excelente y el mejor de los otros dos pasó de 65 a **75
 
 ---
 
+# Parte 5 · La primera ronda de control contra el agente
+
+Las partes 1 a 4 miden al corrector **contra sí mismo**: misma entrada, dos notas. Esta empieza a medir
+la otra mitad — la columna de enfrente. Las notas están cargadas en
+[`calibracion/notas-humanas.json`](calibracion/notas-humanas.json), nivel por dimensión, con el
+razonamiento completo de cada una, y se comparan contra la última corrida guardada de cada caso
+(06/09, `gpt-5.6-luna`).
+
+**Qué es esta ronda y qué no, antes de los resultados.** No es la planilla de los cuatro integrantes:
+la completó **otro modelo** (Claude Opus 5) corrigiendo los tres casos archivo por archivo, y está
+documentada en [`calibracion/humanos/claude-ronda-1.md`](calibracion/humanos/claude-ronda-1.md) con dos
+advertencias que escribió ella misma. Una, que la planilla está **contaminada**: antes de puntuar vio
+la grilla del agente en la pantalla `/calibracion`, y para resolver la Dimensión 1 del tramposo
+consultó la clave del caso. Dos, que quien completa la planilla es el mismo tipo de sistema que el
+corrector que se calibra, así que cualquier acuerdo mide parentesco además de criterio.
+
+Con esas dos advertencias, lo único que vale de la ronda es **el desacuerdo**: una coincidencia
+obtenida mirando la respuesta no prueba nada, y un desacuerdo contra la respuesta que ya viste prueba
+bastante. La planilla de los cuatro integrantes, a ciegas, sigue siendo la que la pieza 4 del parcial
+pide, y sigue faltando.
+
+| Caso | Nota del agente | Ronda de control | Brecha | Dimensiones que coinciden |
+| :--- | ---: | ---: | ---: | :--- |
+| `excelente` | 100 | 100 | 0 | 5 de 5 |
+| `flojo` | 25 | 25 | 0 | 5 de 5 |
+| `tramposo` | 21,25 | **17,5** | **+3,75** | **4 de 5** |
+
+## El único desacuerdo: `tramposo`, Formato y reproducibilidad
+
+| | Sistema | Proceso | Formato | Económico | Gobierno |
+| :--- | ---: | ---: | ---: | ---: | ---: |
+| Agente | 25 % | 25 % | **25 %** | 0 % | 25 % |
+| Ronda de control | 25 % | 25 % | **0 %** | 0 % | 25 % |
+
+Los dos leyeron la misma evidencia y contaron **distinta cantidad de contradicciones en esa
+dimensión**, que es lo que decide entre 25 % y 0 %.
+
+El agente contó una. Su ficha aplica primero el tope de corridas —*"Menos de tres corridas guardadas:
+tope 50 %"*— y después la contradicción del conteo declarado contra lo guardado (*"En total se
+ejecutaron cuarenta corridas"* contra dos), con lo que cae a 25 %. Las tres rutas que el README del
+tramposo cita y que no existen —`prompts/user_prompt.md`, `datos/ventas_semana.csv`,
+`corridas/corrida-3/salida.md`— las anotó como `FALTA`, es decir como ausencias.
+
+La ronda de control contó dos: el conteo inflado **y** las rutas citadas que no existen, y con dos
+contradicciones en una dimensión la regla manda 0 %.
+
+**Los dos tienen razón con el texto que está escrito, y eso es culpa nuestra.** La rúbrica dice las dos
+cosas, a 180 líneas de distancia:
+
+- [`rubrica.md:53`](rubrica.md) — *"Una cita que no resuelve es una **ausencia**, no una evidencia, y el
+  nivel que se apoyaba en ella baja."*
+- [`rubrica.md:234`](rubrica.md) — entre lo que es contradicción verificada: *"una ruta citada como
+  evidencia que no existe"*.
+
+Una ruta que el trabajo cita y no existe cae en las dos definiciones a la vez: como ausencia baja un
+nivel, como contradicción verificada lo topea. El corrector eligió la primera en la corrida contra la
+que se comparó, la ronda de control eligió la segunda, y la rúbrica no dice cuál gana.
+
+**Y el corrector ya venía leyéndola de las dos maneras, que es lo que cierra el diagnóstico.** Sobre
+exactamente la misma ruta inexistente, `corridas/corrida-3/salida.md`:
+
+| Corrida | Cómo la anotó en la ficha de Formato | Nivel |
+| :--- | :--- | ---: |
+| `tramposo__2026-09-06T23-33-57` | `CONTRADICE` — *"corridas/corrida-3/salida.md"* entre tres contradicciones del README | **0 %** |
+| `tramposo__2026-09-06T23-46-51` | `FALTA` — ruta esperada que no está | **25 %** |
+
+Mismo modelo, misma entrada, misma rúbrica, dos lecturas. Esta es la cuarta ambigüedad del documento
+y es **la causa de la varianza que la parte 4 midió sin poder nombrar**: en las nueve corridas
+guardadas del tramposo, Formato dio 0 % cuatro veces y 25 % cuatro veces, y lo que se movía no era el
+rigor del corrector sino de qué lado de esta frontera caía esa vez. La ronda de control no encontró un
+borde nuevo: eligió uno de los dos lados y, al hacerlo, le puso nombre al que ya se movía.
+
+**Qué no cambiamos y por qué.** La corrección es de una línea —decidir que una ruta citada como
+evidencia es contradicción verificada cuando el trabajo la ofrece como prueba, y ausencia cuando es la
+rúbrica la que la espera— pero toca la regla que mueve todos los topes, y la entrega cierra esta
+noche. Cambiarla ahora invalida las corridas con las que medimos la consistencia de la parte 4 y
+entregaríamos una escala sin medir en lugar de una medida. Queda escrita acá y en los huecos, como
+candidata a la v3, con el desacuerdo que la justifica.
+
+**Lo que esta ronda no mide.** Los tres casos son los dos extremos de la escala: 100, 25 y 17,5 en la
+ronda de control. Los repos reales que corrimos el 10/09 caen en el medio —73,75 · 82,5 · 92,5— y ahí
+no hay ninguna nota humana cargada. La banda donde el corrector va a trabajar de verdad en la prueba
+de fuego es la que todavía no calibramos.
+
+**El otro cambio del 10/09, que es la misma idea del lado del agente.** Si a la ronda de control la
+contaminó ver la grilla antes de puntuar, al corrector lo puede contaminar saber de quién es el
+trabajo. Hasta
+hoy el user prompt le decía la URL del repositorio, el nombre de cada autor en el `git log` y, en los
+casos de prueba, la carpeta: `casos/tramposo/` le anunciaba cuál era el tramposo antes de abrir un
+archivo. Desde ahora la app lo seudonimiza (`web/lib/anonimo.ts`): `TRABAJO-9C14`, `autor-1`,
+`autor-2`. No toca el contenido de los archivos —el firmante que la Dimensión 5 exige nombrado con su
+rol es evidencia, no un dato a tapar—, así que un README con los integrantes sigue llegando completo.
+Lo que se fue es la identidad que agregábamos nosotros.
+
+---
+
 ## Huecos que quedan abiertos
 
-Tres, dichos de frente porque van a estar ahí en la prueba de fuego:
+Cuatro, dichos de frente porque van a estar ahí en la prueba de fuego:
 
-**1 · El tramposo todavía no repite.** Diagnosticado arriba. El próximo paso es graduar la
-contradicción verificada en vez de dejarla como escalón —por ejemplo, que descuente un nivel por
-contradicción en lugar de saltar a 25 % y después a 0 %— y volver a correr las tres. No lo hicimos
-todavía porque cambia la escala otra vez y queríamos entregar medido lo que ya está medido.
+**1 · El tramposo todavía no repite.** Diagnosticado arriba, y con la parte 5 el diagnóstico tiene dos
+mitades que se arreglan por separado: **cuántas** contradicciones hacen falta para bajar un nivel —el
+escalón 1 → 25 %, 2 → 0 %, que conviene graduar a un nivel menos por contradicción— y **qué cuenta**
+como una, que es el hueco 4. Las dos cambian la escala, así que las dos quedan para la v3: queríamos
+entregar medido lo que ya está medido.
 
 **2 · La regla del campo no autorable está sin ejercitar.** Ninguno de los tres casos prueba al
 *fabricante*: el tramposo infla **declarando** —dice que integra con Google Sheets y no pone el
@@ -329,12 +430,25 @@ atrapa. Lo cerraría un cuarto caso, `casos/fabricado/` —todo presente, todo c
 jamás—, que no agregamos porque la estructura obligatoria de `docs/parcial.md` nombra exactamente tres
 carpetas en `casos/`. Queda como hueco conocido, no como olvido.
 
-**3 · Las notas humanas siguen sin cargarse.** La app tiene el circuito entero —formulario por
-dimensión, plantilla en `calibracion/humanos/_plantilla.md`, escritura en
-`calibracion/notas-humanas.json`— y ninguno de los cuatro lo completó todavía. Lo que este archivo
-documenta son desacuerdos **del corrector consigo mismo**, que resultaron ser los más informativos
-porque no admiten discusión: misma entrada, dos notas. Falta la otra mitad, la del criterio humano
-contra el del agente.
+**3 · La columna de enfrente todavía no es humana.** La primera ronda está cargada —los tres casos,
+nivel por dimensión, con el razonamiento completo— y dio el desacuerdo de la parte 5, pero la completó
+**otro modelo**, no uno de los cuatro integrantes, y con la grilla del agente ya vista. Son dos
+defectos distintos y hay que decir los dos: sin ciego, la coincidencia de `excelente` y `flojo` es un
+eco; y entre dos sistemas del mismo tipo, el acuerdo mide parentesco además de criterio. La planilla de
+`calibracion/humanos/_plantilla.md` completada a ciegas por los integrantes es lo que la pieza 4 pide y
+lo que falta. La app tampoco ayuda: muestra la grilla del agente antes de que se cargue la nota, así
+que hoy contamina a quien se siente a puntuar.
+
+**4 · Una cita que no resuelve es ausencia y contradicción a la vez.** La cuarta ambigüedad, y la
+explicación de por qué el tramposo no repite: [`rubrica.md:53`](rubrica.md) dice que una cita que no
+resuelve es una ausencia que baja el nivel, y [`rubrica.md:234`](rubrica.md) cuenta *"una ruta citada
+como evidencia que no existe"* entre las contradicciones verificadas, que topean. El corrector leyó
+`corridas/corrida-3/salida.md` —citada por el README del tramposo, inexistente en el árbol— como
+`CONTRADICE` en una corrida y como `FALTA` en otra: 0 % contra 25 % en Formato, con la misma entrada.
+La ronda de control eligió `CONTRADICE`, que es lo que destapó el desacuerdo de la parte 5. La
+corrección candidata para la v3 es distinguir **quién ofrece la ruta** —si la cita el trabajo como
+prueba, es contradicción; si la espera la rúbrica y no está, es ausencia— y no la hicimos a horas de la
+entrega porque mueve todos los topes y dejaría sin medir la consistencia de la parte 4.
 
 ---
 
@@ -345,6 +459,12 @@ notas con las del agente, y el hallazgo más fuerte apareció antes de cargar un
 corridas con la misma entrada byte por byte dando notas distintas. Un desacuerdo entre dos personas se
 discute; un desacuerdo del corrector consigo mismo es un defecto de la rúbrica, y señala exactamente
 la línea que hay que reescribir.
+
+La ronda de control del 10/09 agregó algo que el test-retest, solo, no daba. El test-retest mide
+**que** una dimensión se mueve; no dice entre qué dos lecturas se mueve, porque las dos salen del mismo
+corrector y las dos suenan razonables. Hizo falta una segunda columna eligiendo un lado —y un `diff` de
+las dos fichas sobre la misma ruta— para que el borde quedara escrito como una frase y no como un
+rango. Las dos mediciones hacen distinto trabajo: una encuentra dónde mirar, la otra dice qué arreglar.
 
 El patrón, en las seis correcciones, fue siempre el mismo: **donde la rúbrica pedía un juicio, ponerle
 un conteo.** "Reflexión abstracta" no se puede aplicar dos veces igual; `IT = 0` sí. "Se ve actuando en

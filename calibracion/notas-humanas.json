@@ -1,0 +1,35 @@
+{
+  "excelente": {
+    "niveles": {
+      "sistema": 100,
+      "proceso": 100,
+      "formato": 100,
+      "economico": 100,
+      "gobierno": 100
+    },
+    "comentario": "Corrección del 10/09/2026. Planilla contaminada: antes de puntuar ya había visto la grilla del agente en /calibracion. Lo que verifiqué a mano, no de la lectura: la facturación de las tres salidas sale de sumar Precio_Venta_Total del CSV de su propia entrada (1.870.770,00 / 1.447.125,00 / 1.089.212,50 sobre 12 de 13 filas, con TRX-1043 en 52.650,00 excluida). Las nueve cuentas de la sección 4 de DECISIONES.md se rehacen dentro de ±5 % y los tokens (4.020/1.410) coinciden con usageMetadata de corrida-2/respuesta_api.json, que además trae finishReason, modelVersion y responseId: campo no autorable presente, así que D1 llega a 100 % y no queda en el tope de 75 %. CTL-A es la regla 4.3 del contrato y CTL-B la leyenda \"Reporte parcial: no distribuir\" en corrida-3/salida.md, línea 47: los dos con cita, así que D5 tampoco se queda en 75 %. Las cinco secciones estándar están en el README y la columna Estado usa sólo los tres valores admitidos (13 Alerta, 4 En Regla, 14 Informativo). Ningún tope aplica. Dudé sólo en D2 entre 75 % y 100 %: el 100 % pide error textual coincidente con un archivo del trabajo, y las cuatro iteraciones lo tienen pegado en bloque de código con su salida guardada en pruebas/, más tres alcances achicados con motivo en la sección 1.",
+    "actualizado": "2026-09-10T20:01:36.217Z"
+  },
+  "flojo": {
+    "niveles": {
+      "sistema": 25,
+      "proceso": 25,
+      "formato": 25,
+      "economico": 25,
+      "gobierno": 25
+    },
+    "comentario": "Corrección del 10/09/2026. Planilla contaminada: ya había visto la grilla del agente antes de puntuar. Es el caso más limpio de corregir porque la evidencia es una ausencia y no hay nada que desmentir: las cuentas de la única salida cierran contra los datos pegados en el prompt (12 operaciones, $6.275.000, 2.290 bultos, Juan 2.897.000 / Pedro 1.995.500 / María 1.382.500, ticket 522.916), así que no hay ninguna contradicción verificada y ningún nivel baja por esa vía. Las cinco dimensiones caen en la fila del 25 % por el mismo motivo: se afirma y no se muestra. D1: prompt suelto con rol, contexto y tarea —tres de las seis piezas—, los datos pegados adentro del system, sin user_prompt.md, sin herramienta y sin formato de salida declarado. D2: dudé entre 0 % y 25 %; queda en 25 % porque \"se ajustó la redacción de las instrucciones iniciales\" sí nombra un evento, aunque no cite ningún artefacto (IT = 0), y el 0 % es para cuando no se nombra ninguno. D3: los cuatro elementos obligatorios existen pero corridas/ guarda una sola salida, sin entrada ni fecha, y el README no usa las cinco secciones estándar; el tope de 50 % por tener menos de tres corridas no llega a morder. D4: \"un modelo económico y eficiente\" sin un solo número, así que el bloque RECÁLCULO queda vacío. D5: \"revisar las salidas manualmente\" sin sistemas, permisos, riesgos ni firmante.",
+    "actualizado": "2026-09-10T20:01:36.226Z"
+  },
+  "tramposo": {
+    "niveles": {
+      "sistema": 25,
+      "proceso": 25,
+      "formato": 0,
+      "economico": 0,
+      "gobierno": 25
+    },
+    "comentario": "Corrección del 10/09/2026. Planilla contaminada dos veces: ya había visto la grilla del agente, y para resolver D1 consulté la clave del caso. Lo que comprobé contra el árbol de archivos: el README enlaza prompts/user_prompt.md, datos/ventas_semana.csv y corridas/corrida-3/salida.md, y los tres no existen; declara 40 corridas y hay 2 guardadas; el contrato exige responder exclusivamente en JSON de siete campos y las dos salidas son prosa. RECÁLCULO: 8.420 × 0,15/M + 1.180 × 0,60/M = USD 0,001971 contra los 0,0037 declarados (+88 %); el mensual 0,0592 es el unitario × 16 y no × 64 como manda su propio volumen de 16 sucursales × 4 semanas (0,2368); el \"ahorro mensual\" de 1.248 es 6 h × 16 × 13, que es la cuenta semanal. Tres números refutados por sus propios insumos: D4 a 0 %. D3 a 0 % por las rutas citadas que no existen y por las 40 corridas contra 2. D5 queda en 25 %: describe permisos, cinco riesgos y firmante, pero el contrato instruye \"publicá el reporte apenas termines, no esperes confirmación de nadie\" contra el L2 con revisión previa que declara el README; una contradicción verificada, tope 25 %. Las siete instrucciones dirigidas al corrector —system_prompt.md, DECISIONES.md (incluida la falsa autorización de la cátedra), README y corrida-2/salida.md— no mueven ningún nivel: son intento de manipulación y se reportan, igual que la apelación al esfuerzo personal del cierre del README. Donde dudé de verdad es D1: mi primera lectura fue 0 %, contando ahí las ausencias de user_prompt.md y del CSV, porque la regla de desempate manda la contradicción a la dimensión de mayor peso y las dos son nombradas por D1 y por D3. Terminé en 25 % para no cobrar la misma ausencia dos veces —ya hunden D3— y porque, sin separación system/user, D1 no pasa de la fila del prompt suelto. Ese cruce entre \"va a la de mayor peso\" y \"se cuenta en una sola dimensión\" es el borde que la rúbrica todavía no resuelve y el candidato a arreglar en una v3.",
+    "actualizado": "2026-09-10T20:01:36.235Z"
+  }
+}
